@@ -1,0 +1,41 @@
+# Addresses
+# 8059CF8C	[2B]	input buffer
+# 805B6B0C	[4B]	location (text)
+# 805B6B10	[4B]	location ctd. (text)
+# 805B6B2F	[1B]	layer
+# 805B6B30	[1B]	entrance
+# 805B6B32  [1B]    trial yay or nay?
+# 80BA117C	[1B]	triggers reload when set to 5
+
+2859CF8C 00000001           # if left press
+    {fileload.asm}          # runs fileLoadSelected(), loadToCurrent()
+    28004204 00FF0100       # if flag 0
+        84200000 805B6B0C	# load 4B location from gecko reg 0
+        84200001 805B6B10	# load 4B location ctd. from gecko reg 1
+        84000002 805B6B2F	# load 1B layer from gecko reg 2
+        84000003 805B6B30	# load 1B entrance from gecko reg 3
+    E2000001 80008000       # endif
+    48000000 805789F4	    # set pa to *RHS
+    DE000000 80008180	    # assert 0x80000000 ≤ pa < 0x81800000 (else set code execution to false)
+        1200023C 00000005	    # write 2B literal 0x5 to *pa+23C
+    E0000000 80008000
+
+2859CF8D 00002001           # if Z+left press
+    {reset.asm}
+    48000000 805789F4	    # set pa to *RHS
+    DE000000 80008180	    # assert 0x80000000 ≤ pa < 0x81800000 (else set code execution to false)
+        1200023C 00000005	    # write 2B literal 0x5 to *pa+23C
+    E0000000 80008000
+
+2859CF8D 00000002           # if right press (endif)
+    82200000 805B6B0C		# store 4B location at gecko reg 0
+    82200001 805B6B10		# store 4B location ctd. at gecko reg 1
+    82000002 805B6B2F		# store 1B layer at gecko reg 2
+    82000003 805B6B30		# store 1B entrance at gecko reg 3
+    00004204 00000001       # set flag 0
+    {filesave.asm}
+
+2859CF8D 00002002           # if Z+right press (endif)
+    00004204 00000000       # unset flag 0
+
+E0000000 80008000           # clears code execution

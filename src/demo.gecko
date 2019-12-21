@@ -1,0 +1,13 @@
+2859CF8C 00000004           # if down press
+    04000000 00000000
+    28004204 00FF0100       # if flag 0
+        04000000 00000001
+    E2000001 80008000       # endif
+
+2859CF8D 00000002           # if right press (endif)
+    00004204 00000001       # set flag 0
+
+2859CF8D 00000001           # if left press (endif)
+    00004204 00000000       # unset flag 0
+
+E0000000 80008000           # clears code execution
