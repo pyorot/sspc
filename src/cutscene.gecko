@@ -30,7 +30,7 @@
 		12346C58 000000A5   # Lopsa 113
 		1234905A 00000098   # Bucha br
 		12346D48 0000006C   # Bucha 128
-		12382079 00000030   # Ghirahim Scaldera
+		12382288 00000030   # Ghirahim Scaldera
         0295A75C 00000008   # Potion!
 #- 00000006 00000001
     CC000000 00000000       # On/off switch
@@ -63,7 +63,7 @@
 		12346C58 000000CF   # Lopsa 113
 		1234905A 00000097   # Bucha br
 		12346D48 0000002C   # Bucha 128
-		12382079 00000038   # Ghirahim Scaldera
+		12382288 00000032   # Ghirahim Scaldera
         0295A75C 00000000   # Potion!
         0295A760 00000008   # Potion!
 #- 00000007 00000002

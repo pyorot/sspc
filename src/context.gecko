@@ -1,0 +1,18 @@
+2859CF8C 00002008           # if right press (endif)
+    00004205 00000001       # flag 1 = 1
+    0295A75C 00000008       # Potion!
+CC000000 00000000
+2859CF8C 00002008
+    00004205 00000000       # flag 1 = 0
+    0295A75C 00000000       # Potion!
+    0295A760 00000008       # Potion!
+E0000000 80008000
+
+28004204 FF000001           # if flag 1
+205B6B0C 42323030           # if ET
+    005B6B30 00000001       # Entrance = 1
+    48000000 805782F8	    # set pa to *RHS
+    DE000000 80008180	    # assert 0x80000000 ≤ pa < 0x81800000 (else set code execution to false)
+        9221000E 00000010   # copy boss health
+        8410000E 80955EC2   # over FA rupees
+E0000000 80008000
