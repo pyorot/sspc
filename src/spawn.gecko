@@ -28,14 +28,17 @@
     E0000000 80008000
 
 2859CF8D 00000002           # if right press (endif)
+    {filesave.asm}
     82200000 805B6B0C		# store 4B location at gecko reg 0
     82200001 805B6B10		# store 4B location ctd. at gecko reg 1
     82000002 805B6B2F		# store 1B layer at gecko reg 2
     82000003 805B6B30		# store 1B entrance at gecko reg 3
     00004204 00000001       # set flag 0
-    {filesave.asm}
-
-2859CF8D 00002002           # if Z+right press (endif)
+    0295A75C 00000008       # Potion!
+CC000000 00000000
+2859CF8C 00000002           # if Z+right press (endif)
     00004204 00000000       # unset flag 0
+    0295A75C 00000000       # Potion!
+    0295A760 00000008       # Potion!
 
 E0000000 80008000           # clears code execution
