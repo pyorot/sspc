@@ -1,32 +1,32 @@
 # Gecko Guide
 
-*(Optional reading is in italics.)*
+*(An intro to Gecko and how it's used in this project. Optional reading is in italics.)*
 
-Gecko is an assembly-like language for working directly with memory and triggering custom ASM. The codes are interpreted by a "codehandler" that runs them at least once per frame by injecting them into standard system calls – *usually OSSleepThread on Nintendont, also often Vertical Blanking Interval (once per frame), etc*. This means they carry no state between frames, and will repeat their actions each time. The exception to this is the CC code and Switch idiom.
+Gecko is an assembly-like language for working directly with memory and/or triggering custom ASM. The codes are interpreted by a "codehandler" (in an emulator or loader) that runs them at least once per frame by injecting them into standard system calls – *usually OSSleepThread on Nintendont, also often Vertical Blanking Interval (once per frame), etc*. This means they carry no state between runs, and will repeat their actions each time. The exception to this is the `CC` code and [Switch](#Switch) idiom.
 
 ## Codetypes
-The syntax is pairs of 4B words, usually written in hex. The codetype is the first byte of the (8B) pair. These are used in this project. Documentation [here](https://geckocodes.org/index.php?arsenal=1). 
+The syntax is pairs of 4B words, usually written in hex. The codetype is the first byte of the (8B) pair. These are used in this project. Docs [here](https://geckocodes.org/index.php?arsenal=1). 
 
 ### Read/Write
 **00–05; 10–15 – Write literal**  
 Write literal (= constant) directly to memory.
 
 **80; 82; 84 – GR read/write**  
-Set Gecko register to literal, or copy from/to it to/from memory. These are a set of 16 4B memory locations provided by Gecko.
+Set Gecko register (GR) to literal, or copy from/to it to/from memory. These are a set of 16 4B memory locations provided by Gecko.
 
 ### Navigation
 **42; 4A – Set default address**  
-Set default addresses (base (BA) or pointer (PA)) to literal. Memory addresses in other codes are usually interpreted as offsets relative to these, so they can fit into the code. See Address and Pointer idioms.
+Set base/pointer (default) addresses (BA/PA) to literal. Memory addresses in other codes are usually interpreted as offsets relative to these, so they can fit into the 8B codes. See [Address](#Address) and [Pointer](#Pointer) idioms.
 
 ### If
 **20–3F – If literal**  
 Compare memory to literal (=, ≠, <, >). There is no direct way to compare GRs to literals.
 
 **CC – On/Off**  
-Detect change in condition value. Persists state, so use this for codes that toggle things – see Switch idiom.
+Detect change in if result. Persists state, so use this for codes that toggle things – see [Switch](#Switch) idiom.
 
 **DE – Assert pointer**  
-Checks that a value in the pointer address (PA) is valid. Use for safety before dereferencing; see Pointer idiom.
+Checks that a value in the pointer address (PA) is valid. Use for safety before dereferencing; see [Pointer](#Pointer) idiom.
 
 **E0 – Infinite end-if**  
 Ends all conditional statements.
@@ -51,7 +51,7 @@ If statements allow comparison of 2B or 4B variables.
 * 2B is more powerful because of the *mask* you can provide, which lets you easily compare 1B or go as far as isolating bits. A mask of `0000` preserves the whole variable; `FFFF` sets it to 0.
 
 ### Branching
-The implementation of if statements (20–3F; DE) is unlike structured languages. Imagine a signal ("code execution") passing through the code, that gets disabled (possibly repeatedly) if the conditional evals to false. End-ifs can be applied to clear specific quantities of disablings (E2) or all of them (E0). The CC code is different – see Switch idiom.
+The implementation of if statements (20–3F; DE) is unlike structured languages. Imagine a signal ("code execution") passing through the code, that gets disabled (possibly repeatedly) if the conditional evals to false. End-ifs can be applied to clear specific quantities of disablings (E2) or all of them (E0). The CC code is different – see [Switch](#Switch) idiom.
 
 ## Idioms
 
@@ -60,13 +60,13 @@ Base address is usually set to `80000000`, which makes all of GC mem accessible 
 
 *Changing BA/PA to non-`x0000000` values to use offsets is a faff imo bc of the lost direct comparison with Dolphin Memory Engine among other things.*
 
-### Pointers
+### Pointer
 Otoh, a situation where PA must be used is to access heap data that is at risk of moving. Find a static pointer to the containing object, then:
 1. load it to PA (with `4A` code);
 2. validate that it's a pointer (with `DE` code);
 3. dereference it with offset (in any other code).
 
-### Flags
+### Flag
 The executable part of memory (typically at addresses ~`80004000` to ~`80400000` or ~`80500000`) is guaranteed to not change *and* has lots of spaces left by alignment of functions. I use this to store flags and Gecko registers to back-up data, because GRs can't be compared to literals.
 * Set flags with 1B writes:  
 `00004204 00000001`  
