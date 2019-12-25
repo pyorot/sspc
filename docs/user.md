@@ -1,6 +1,14 @@
 # User Guide
 These codes are for JP Skyward Sword (SOUJ01) and use the d-pad and Wii Remote + Nunchuk buttons.
 
+| | |
+|-|-|
+| → | Store
+| ← | Reload
+| Z + ← | BiT Reload
+| ↑ | Cutscene Skip Toggle
+| Z + ↑ | Contextual Toggle
+
 There are two settings flags:
 
 | | |
@@ -11,15 +19,13 @@ There are two settings flags:
 File notation:
 | | |
 |-|-|
-* **FA**: currently-loaded file (at 0x80955464)
-* **FB**: BiT file (at 0x8095A824‬)
-* **F1/2/3**: save files loaded to RAM (at 0x809BE200‬, 0x809C35C0‬, 0x809C8980 rsp.)
-* **FC**: the "current" file, which is FA during gameplay and FB on the title screen.
-* **FS**: the "selected" file, which is F1/2/3 depending on which was last selected (or started) on the title screen.
+| **FA** | currently-loaded file (at 0x80955464)
+| **FB** | BiT file (at 0x8095A824‬)
+| **F1/2/3** | save files loaded to RAM (at 0x809BE200‬, 0x809C35C0‬, 0x809C8980 rsp.)
+| **FC** | the "current" file, which is FA during gameplay and FB on the title screen.
+| **FS** | the "selected" file, which is F1/2/3 depending on which was last selected (or started) on the title screen.
 
-*Committables* refers to data that can be committed, which includes story/inventory/scene/temp flags + other unknown temporary data.
-
-*Spawn data* refers to area (e.g. "F000"), layer and entrance.
+*Committables* refers to data that can be committed, which includes story/inventory/scene/temp flags + other unknown temporary data. *Spawn data* refers to area (e.g. "F000"), layer and entrance.
 
 ### → : Store
 Stores your current file and spawn data. This toggles flag 0:
@@ -32,12 +38,12 @@ Stores your current file and spawn data. This toggles flag 0:
 *Psuedocode:*  
 if flag 1 is true:  
     unset flag 1  
-    show "on" potion  
+    show "off" potion  
 else:  
     copy file: FA → FS  
     copy spawn data: static data → cheat cache  
     set flag 1  
-    show "off" potion  
+    show "on" potion  
 
 ### ← : Reload
 Restores your stored file (see → press), restores respawn data if flag 0 is enabled, and triggers a reload. If no file has been stored, your started save file is restored.
@@ -58,7 +64,7 @@ trigger reload
 Loads BiT into the default spawn.
 
 *Notes:*
-* Running this during gameplay causes Link to die immediately (because the current file is still FA), and no title screen appears; press reset first!
+* Running this during gameplay causes Link to die immediately (because the current file is still FA, which just got blanked – see code), and no title screen appears; press reset first!
 
 *Psuedocode:*  
 set spawn data: (BiT defaults) → static data  
@@ -68,13 +74,13 @@ initialise FB
 trigger reload  
 
 ### ↑ : Cutscene Skip Toggle
-Enables/disables cutscene skips, showing a green/purple potion respectively. These skips retain changes in story/scene flag and Link/camera position as much as possible.
+Enables/disables cutscene skips, showing a green/purple potion respectively. These skips retain changes in story/scene flags and Link/camera position as much as possible.
 
 *Skipped Cutscenes:*  
 Exiting sparring hall  
 Sheikah stone dialogue  
 Zelda loftwing dialogue  
-Fledge adventure pouch
+Fledge adventure pouch  
 Meeting Impa  
 Meeting Gorko  
 Machi  
@@ -82,7 +88,7 @@ Lopsa
 Bucha  
 
 *Psuedocode:*  
-alternate between:
+alternate between:  
     splice cutscene graphs; show "on" potion  
     revert cutscene graphs; show "off" potion
 
@@ -97,7 +103,9 @@ Pastes boss health over rupee count (on FA) while Scaldera is loaded.
 alternate between:  
     set flag 1; show "on" potion  
     unset flag 1; show "off" potion  
-\# Scaldera  
-    if static spawn area == "B200":
-        static spawn entrance = 1
-        rupee count = boss health
+
+if flag 1:  
+    \#\#\# Scaldera \#\#\#  
+    if static spawn area == "B200":  
+        static spawn entrance = 1  
+        rupee count = boss health  
