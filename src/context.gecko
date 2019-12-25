@@ -11,10 +11,13 @@ E0000000 80008000
 
 # run payload if on
 28004204 FF000001           # if flag 1
-205B6B0C 42323030           # if Earth Temple
-    005B6B30 00000001       # set entrance to 1
-    48000000 805782F8	    # set PA to Scaldera (actor on heap?)
-    DE000000 80008180	    # assert pointer
-        9221000E 00000010   # copy boss health (via GR E)
-        8410000E 80955EC2   # to FA rupees
+    
+    # Scaldera
+    205B6B0C 42323030           # if ET boss room
+        005B6B30 00000001       # set entrance to 1
+        48000000 805782F8	    # set PA to Scaldera (actor on heap?)
+        DE000000 80008180	    # assert pointer
+            9221000E 00000010   # copy boss health (via GR E)
+            8410000E 80955EC2   # to FA rupees
+
 E0000000 80008000

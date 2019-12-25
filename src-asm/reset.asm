@@ -1,5 +1,5 @@
 push
-  # setSpawn (manually write data)
+  # setSpawn (manually write data to master spawn object)
 liw 3, 0x805B6B0C       # master spawn object
 liw 4, 0x46303030       # location
 li 5, 0x0               # location ctd. (null terminator)
@@ -15,5 +15,5 @@ call 0x80010560         # cf.reset (blanks FA and FB, then runs loadToCurrent())
   # file init
 liw 3, 0x8095545C       # cf (currentFiles)
 li 4, 1                 # 1 means FB here
-call 0x8000abc0         # cf.reset(1)
+call 0x8000abc0         # cf.fileInit(1) (sets basic values on file like hearts = 6)
 pop

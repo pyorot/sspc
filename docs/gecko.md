@@ -2,10 +2,10 @@
 
 *(An intro to Gecko and how it's used in this project. Optional reading is in italics.)*
 
-Gecko is an assembly-like language for working directly with memory and/or triggering custom ASM. The codes are interpreted by a "codehandler" (in an emulator or loader) that runs them at least once per frame by injecting them into standard system calls – *usually OSSleepThread on Nintendont, also often Vertical Blanking Interval (once per frame), etc*. This means they carry no state between runs, and will repeat their actions each time. The exception to this is the `CC` code and [Switch](#Switch) idiom.
+Gecko is an assembly-like language for working directly with memory and/or triggering custom ASM. The codes are interpreted by a "codehandler" (in an emulator or loader) that runs them at least once per frame by injecting them into standard system calls – *usually OSSleepThread on Nintendont, also often Vertical Blanking Interval (between frame draws), etc*. This means they carry no state between runs, and will repeat their actions each time. The exception to this is the `CC` code and [Switch](#Switch) idiom.
 
 ## Codetypes
-The syntax is pairs of 4B words, usually written in hex. The codetype is the first byte of the (8B) pair. These are used in this project. Docs [here](https://geckocodes.org/index.php?arsenal=1). 
+The syntax is pairs of 4B words, usually written in hex. The codetype is the first byte of the (8B) pair. The following are used in this project. Docs [here](https://geckocodes.org/index.php?arsenal=1). 
 
 ### Read/Write
 **00–05; 10–15 – Write literal**  
@@ -23,7 +23,7 @@ Set base/pointer (default) addresses (BA/PA) to literal. Memory addresses in oth
 Compare memory to literal (=, ≠, <, >). There is no direct way to compare GRs to literals.
 
 **CC – On/Off**  
-Detect change in if result. Persists state, so use this for codes that toggle things – see [Switch](#Switch) idiom.
+Detect change in if result between runs. Persists state, so use this for codes that toggle things – see [Switch](#Switch) idiom.
 
 **DE – Assert pointer**  
 Checks that a value in the pointer address (PA) is valid. Use for safety before dereferencing; see [Pointer](#Pointer) idiom.
@@ -56,7 +56,7 @@ The implementation of if statements (20–3F; DE) is unlike structured languages
 ## Idioms
 
 ### Address
-Base address is usually set to `80000000`, which makes all of GC mem accessible by adding the codetype (writing e.g. `04` as `04000000`) to the address (resulting in a range of e.g. `04000000` to `05200000`). A convenient way to access Wii memory is to find (or set) a variable to `90000000`, then load that variable's *address* to the pointer address. Then BA covers GC and PA covers Wii.
+Base address is usually set to `80000000`, which makes all of GC memory accessible by adding the codetype (writing e.g. `04` as `04000000`) to the address (resulting in a range of e.g. `04000000` to `05200000`). A convenient way to access Wii memory is to find (or set) a permanent variable to `90000000`, then load its *address* to the pointer address. Then BA covers GC and PA covers Wii.
 
 *Changing BA/PA to non-`x0000000` values to use offsets is a faff imo bc of the lost direct comparison with Dolphin Memory Engine among other things.*
 
@@ -71,12 +71,13 @@ The executable part of memory (typically at addresses ~`80004000` to ~`80400000`
 * Set flags with 1B writes:  
 `00004204 00000001`  
 `00004205 00000001`
-* Check flags with 2B ifs with masks:   `28004204 00FF0100`  
+* Check flags with 2B ifs with masks:  
+`28004204 00FF0100`  
 `28004204 FF000001` (rsp.)  
 Note that the mask and literal are on opposite halves of the 2B variable!
 
 ### Copy
-Directly copying from memory to memory is not possible (copying between memory and GRs is). To alleviate that, copy to a "volatile" GR, then copy from it elsewhere. Convention: volatile GRs will be the ones counting backwards from index `E`. *Don't use `F` bc it's a special char in various GR codetypes signalling not to use a GR at all!*
+Directly copying from memory to memory is not possible (copying between memory and GRs is). To alleviate that, copy to a "volatile" GR, then copy from it to elsewhere. Convention: volatile GRs will be the ones counting backwards from index `E`. *Don't use `F` bc it's a special char in various GR codetypes signalling not to use a GR at all!*
 
 For more complicated or bulk copying, find the `memcpy` function in the game and call it with `C0` ASM execution.
 
@@ -85,14 +86,14 @@ The key is that a `CC` code executes regardless of all if conditional disabling 
 
 The switch idiom looks like this:
 ```
-[conditional]       # 1. If (I)
+[condition]         # 1. If (I)
 [true payload (T)]  # 2
 cc000000 00000000   # 3. Switch (S)
-[conditional]       # 4. (I) again
+[same condition]    # 4. Same (I)
 [false payload (F)] # 5
 e0000000 00000000   # 6. ∞ end-if
 ```
-Example of conditional – if d-pad right is pressed in Skyward Sword:
+Example of condition (I): if d-pad right is pressed in Skyward Sword:
 ```
 2859CF8C 00000002
 ```
@@ -115,7 +116,7 @@ I- S-: doesn't run
 ```
 (I) is typically a button-press conditional, which is great because this means T or F will only execute while trigger buttons are pressed (and their results will remain when unpressed), so have no potential lag impact on gameplay. Likewise, the same condition toggles between applying T and F, so one button can toggle something.
 
-The key downside is that F cannot be run separately, only T then F. Fine if F overwrites the same values as T, but otherwise note side-effects and things that should be reverted.
+The key downside is that F cannot be run separately, only T then F. Fine if F overwrites the same values as T, but otherwise note side-effects and things set in T that should be reverted by F.
 
 **Note**: (I) can be replaced with multiple lines, interpreted as logical conjunction, w/o any change in the idiom.
 
