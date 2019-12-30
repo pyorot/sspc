@@ -1,3 +1,8 @@
+---
+layout: default
+permalink: /ss/pc/gecko
+---
+
 # Gecko Guide
 
 *(An intro to Gecko and how it's used in this project. Optional reading is in italics.)*

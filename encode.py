@@ -70,7 +70,7 @@ if outputs:
         with open('build/sspc.ini', 'w') as dfile:
             dfile.write('[Gecko]\n')
             for i in range(len(outputs)):
-                dfile.write('\n$' + names[i] + '\n' + outputs[i])
+                dfile.write('$sspc | ' + names[i] + '\n' + outputs[i])
         print('Info: encoded Dolphin INI')
 else:
     print('Error: nothing to encode.')
