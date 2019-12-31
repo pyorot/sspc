@@ -8,10 +8,10 @@ permalink: /ss/pc/install
 ## Console
 
 **GCT Files**  
-The GCT file format for cheats is natively supported by many common loaders, like Nintendont, Neogamma, Gecko OS and Swiss. This guide will use Nintendont so it can fall back to the [SMS guide](https://gct.zint.ch/guide) for troubleshooting support.
+The GCT file format for cheats is natively supported by many common Wii game loaders, like USB Loader GX, Gecko OS and Neogamma. This guide will use Gecko OS and USB Loader GX, depending on whether the game is loaded from disc or USB drive respectively.
 
 **Homebrew + Firmware**  
-All loaders run on a **homebrewed Wii**. I recommend using [this guide](https://wii.guide) for a fresh homebrew installation. I also recommend installing the **latest firmware** (4.3) because it includes USB 2.0 drivers that Nintendont likely requires for USB loading.
+All loaders run on a **homebrewed Wii**. I recommend using [this guide](https://wii.guide) for a fresh homebrew installation.
 
 **Japanese Game Only**  
 The practice codes require a **Japanese copy** of Skyward Sword (SOUJ01). All the aforementioned loaders allow loading from a USB or SD card, so you can source an ISO of the game to use with them (verify the file integrity by comparing hashes with [this database](https://www.gametdb.com/) in Dolphin).
@@ -19,29 +19,84 @@ The practice codes require a **Japanese copy** of Skyward Sword (SOUJ01). All th
 **Leaderboard Legality**  
 Cheats and loading from USB/SD are banned for speedruns on the leaderboard (because disc loads are slower than flash loads).
 
-### File Setup
-Place 3 things on an SD card or USB drive (or both): **Nintendont**, the **game ISO** file and the **cheat GCT** file. Skip the game ISO if you want to load the game from disc instead.
+### Disc Loading
+Here's an ez-pz method, using Gecko OS and an SD card. Ensure the SD card is formatted with FAT32.
 
-*In the following, ◯ represents your drive letter, usually E, F... for removable drives like SD and USB.*
+**File Setup**  
+Place 2 things on an SD card: **Gecko OS** and the **cheat GCT** file.  
+*In the following, ◯ represents your SD card drive letter, usually E, F... for removable drives like SD and USB.*
 
-- **Nintendont**:
-  - The latest version is available [here](https://share.zint.ch/nintendont/latest/Nintendont.zip) (thanks to Psychonauter for maintaining). Don't use old versions for quality-of-life reasons; specifically anything before v5 as the codes may be too long for those versions.
-  - This is a file archive (zip file) – open and extract it to `◯:/apps/Nintendont`. Do not just copy the zip file to that folder and expect it to work!
-- **Game ISO**:
-  - Place this at `◯:/games/SOUJ01.iso`; do not rename!
+- **Gecko OS**:
+  - The final version (1.9.3.1) is available [here](/files/Gecko1931.zip).
+  - This is a file archive (zip file) – open and extract it to `◯:/apps/`. Don't just copy the zip file to that folder and expect it to work!
 - **Cheat GCT**:
   - Place this at `◯:/codes/SOUJ01.gct`; do not rename!
-  - If an ISO is being used, it must be on the same drive as the GCT – whether SD or USB. Nintendont itself can be on a different drive.
 
-### Using Nintendont
-Open Nintendont from the Homebrew Channel, then select:
-- to load from disc/SD/USB (depending on where the game is);
-- `Cheats: On` in settings.
+Sample layout on SD card once finished:
+```
+SD (E:)
+├───apps
+│   └───Gecko1931
+│       ├───boot.elf
+│       ├───icon.png
+│       └───meta.xml
+└───codes
+    └───SOUJ01.gct
+```
 
-Then start the game.
+**Usage**  
+Open Gecko OS from the Homebrew Channel.  
+Verify the following settings in "Config Options" (and click "Save Config" to make changes):
+- Load Debugger: NO
+- SD Cheats: YES
 
-### Troubleshooting
-Check the [SMS troubleshooting guide](https://gct.zint.ch/guide#3).
+Then click "Launch Game".
+
+### USB Loading
+Here's a D: method, using USB Loader GX and a USB drive. This has been tested with the drive formatted to FAT32 but may work with NTFS.
+
+**File Setup**  
+Place 3 things on a USB drive: **USB Loader GX**, the **cheat GCT** file, and the **game** (to be explained).  
+*In the following, ◯ represents your USB drive letter, usually E, F... for removable drives like SD and USB.*
+
+- **USB Loader GX**:
+  - The latest version (3.0 r-something) is available [here](https://sourceforge.net/projects/usbloadergx/files/latest/download).
+  - This is a file archive (zip file) – open and extract it to `◯:/` (the `apps` folder is provided in the archive). Don't just copy the zip file to that folder and expect it to work!
+- **Cheat GCT**:
+  - Place this at `◯:/codes/SOUJ01.gct`; do not rename!
+- **Game**:
+  - Source an ISO from the interwebs. Verify it in Dolphin (see the *Japanese Game Only* paragraph above). ISOs can also be ripped from a disc by other means.
+  - Pick up and run a copy of [Wii Backup Manager](http://www.wiibackupmanager.co.uk/WiiBackupManager_Build78.html), to be used to copy the ISO to the USB drive in the correct format.
+    - Files → Add → Files... → (select your ISO). Select the ISO (tick check-box).
+    - Drive 1 → (select `Drive (◯:)` in the drop-down box initially showing "Inactive"). Agree to creating a WBFS folder on the USB drive, if prompted.
+    - Files → Transfer → WBFS File... → (select `◯:/wbfs`). Wait for transfer to complete.
+
+Sample layout on USB drive once finished. *The WBFS file is partitioned because FAT32 has a 4GB file limit.*
+```
+USB (D:)
+├───disc.info
+├───apps
+│   └───usbloader_gx
+│       ├───480p fix info.txt
+│       ├───boot.dol
+│       ├───boot_non480pfix.dol
+│       ├───icon.png
+│       └───meta.xml
+├───codes
+│   └───SOUJ01.gct
+└───wbfs
+    ├───disc.info
+    └───The Legend of Zelda Skyward Sword [SOUJ01]
+        ├───SOUJ01.wbfs
+        └───SOUJ01.wbf1
+```
+
+**Usage**  
+Start Homebrew Channel, remove SD card, then open USB Loader GX *(if it's started with an SD card inserted, it'll look for cheats on the SD card)*.
+
+Verify: (Global) Settings → Loader Settings → Ocarina: ON.
+
+Then start the game. If the above setting is on and there's no warning when starting the game, cheats have successfully loaded.
 
 ## Dolphin
 
