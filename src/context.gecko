@@ -13,11 +13,20 @@ E0000000 80008000
 28004204 FF000001           # if flag 1
     
     # Scaldera
-    205B6B0C 42323030           # if ET boss room
+    205B6B0C 42323030           # if ET boss room (B200)
         005B6B30 00000001       # set entrance to 1
         48000000 805782F8	    # set PA to Scaldera (actor on heap?)
         DE000000 80008180	    # assert pointer
             9221000E 00000010   # copy boss health (via GR E)
             8410000E 80955EC2   # to FA rupees
+        E2000001 80008000       # endif ×1
+    
+    # Skyloft (Layer 3)         # for sidehop cs skip practice
+    205B6B0D 46303030           # if (4B) Skyloft (F000)
+        285B6B2E FF000003       # if (2B w/ mask) layer 3
+            48000000 805789F4	    # set PA to reloader thingie
+            DE000000 80008180	    # assert pointer
+                100002A2 00000001	    # write 1B "true" to reloader.saveprompt (0x2a2)
+        E2000002 80008000       # endif ×2
 
 E0000000 80008000

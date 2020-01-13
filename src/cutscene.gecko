@@ -3,6 +3,10 @@
 48000000 803D2144       # set PA to 90000000 (BA is 80000000)
 2859CF8C 00000008       # if up:
 301F2100 55AA382D       # if archive files are valid (check first 4 chars of first one)
+	122B1A28 00000039	# Horwell 152
+	122B1DF8 00000040	# Horwell 213
+	122B2378 00000042	# Horwell br (Z tutorial)
+	122B237C 0000FFFF	# Horwell br (Dash tutorial)
 	1230B8A8 00000049   # Eagus 30
 	1230B8C8 0000004A   # Eagus 32
 	12286D78 0000FFFF   # Sheikah 5
@@ -32,6 +36,10 @@
 CC000000 00000000       # switch
 2859CF8C 00000008       # if up
 301F2100 55AA382D       # if archive files are valid (check first 4 chars of first one)
+	122B1A28 00000023	# Horwell 152
+	122B1DF8 00000105	# Horwell 213
+	122B2378 00000109	# Horwell br (Z tutorial)
+	122B237C 0000010C	# Horwell br (dash tutorial)
 	1230B8A8 00000019   # Eagus 30
 	1230B8C8 0000001A   # Eagus 32
 	12286D78 00000007   # Sheikah 5

@@ -15,19 +15,25 @@ of this file (iirc), signifying branch directions.
 All values below are written in decimal.
 
 == Data ==
-1.1 Eagus Exit
+1.1 Horwell Tutorials
+108:	152 → 57	(35)		initial "up here!"
+		213 → 64	(261)		"
+		br: 66		(265)		after Z-target
+		br: -1		(268)		after dash
+
+1.2 Eagus Exit
 119:    30 → 73     (25)
         32 → 74     (26)
 
-1.2 Sheikah Stone
+1.3 Sheikah Stone
 008:    5 → -1      (7)
         6 → -1      (17)
 
-1.3 Zelda Loftwing
+1.4 Zelda Loftwing
 102:    78 → 139    (3)
         141 → 140   (136)
 
-1.4 Fledge
+1.5 Fledge
 114:    14 → 18     (15)
         17 → 51     (22)
         16 → 100    (19)
