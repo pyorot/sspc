@@ -11,38 +11,35 @@
     # 0: respawn with current spawn info (from most recent area load)
     # 1: respawn with restored spawn info (from previous save)
 
-2859CF8C 00000001           # if left
+## Reload ##
+2859CF8C 40000001           # if left or C+left
     {fileload.asm}          # runs cf.fileLoadSelected(), loadToCurrent()
-    28004204 00FF0100       # if flag == 0
-        84200000 805B6B0C	# load 4B location from GR 0
-        84200001 805B6B10	# load 4B location ctd. from GR 1
-        84000002 805B6B2F	# load 1B layer from GR 2
-        84000003 805B6B30	# load 1B entrance from GR 3
-    E2000001 80008000       # end-if
-    48000000 805789F4	    # set PA to some reload-triggerer thingie
-    DE000000 80008180	    # assert pointer
-        1200023C 00000005	    # write 2B literal 0x5 to *PA+23C
-    E0000000 80008000
+    84200000 805B6B0C	    # load 4B location from GR 0
+    84200001 805B6B10	    # load 4B location ctd. from GR 1
+    84000002 805B6B2F	    # load 1B layer from GR 2
+    84000003 805B6B30	    # load 1B entrance from GR 3
+    285B6B0C 17574020       # if location is valid (custom mask for regex /[BDFS][0-4e]../; see Stage folder)
+        48000000 805789F4	    # set PA to reloader
+        2859CF8C 00004001       # if C+left
+            005789FD 00000001       # set reload type to 1 = "from save" (gets zeroed after reload)
+        DE000001 80008180	    # assert pointer (end-if)
+            1200023C 00000005	    # trigger reload: write 2B literal 0x5 to *PA+23C
+E0000000 80008000
 
-2859CF8D 00002001           # if Z+left (endif prev)
+## BiT Reload ##
+2859CF8D 00000401           # if B+left (endif prev)
     {reset.asm}             # runs setSpawn([defaults]), cf.reset(), cf.initFile(1)
-    48000000 805789F4	    # set PA to some reload-triggerer thingie
+    48000000 805789F4	    # set PA to reloader
     DE000000 80008180	    # assert pointer
-        1200023C 00000005	    # write 2B literal 0x5 to *PA+23C
-    E0000000 80008000
+        1200023C 00000005	    # trigger reload: write 2B literal 0x5 to *PA+23C
+E0000000 80008000
 
+## Store ##
 2859CF8D 00000002           # if right (endif prev)
-    00004204 00000000       # unset flag
-    0295A760 00000008       # Potion!
-CC000000 00000000
-2859CF8C 00000002
-    {filesave.asm}          # runs cf.fileSaveSelected()
+    {store.asm}             # stores Link's pos+angle to FA, then runs cf.fileSaveSelected()
     82200000 805B6B0C		# store 4B location at GR 0
     82200001 805B6B10		# store 4B location ctd. at GR 1
     82000002 805B6B2F		# store 1B layer at GR 2
     82000003 805B6B30		# store 1B entrance at GR 3
-    00004204 00000001       # set flag
-    0295A760 00000000       # Potion! (revert)
-    0295A75C 00000008       # Potion!
-
+    0295A758 00000008       # Potion!
 E0000000 80008000           # clears code execution
