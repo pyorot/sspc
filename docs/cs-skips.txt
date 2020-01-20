@@ -41,7 +41,7 @@ All values below are written in decimal.
 1.6 Fi: Leaving
 107:	15 → 53		(17)    902AC1D8
 
-2.1 Whirlpool
+2.1 Fi: Whirlpool
 500:	476 → 569	(491)	903D7728    (Fi)
         569 → 565	(492)	903D7CF8    (Fi)
 

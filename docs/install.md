@@ -48,6 +48,7 @@ SD (E:)
 Open Gecko OS from the Homebrew Channel.  
 Verify the following settings in "Config Options" (and click "Save Config" to make changes):
 - Load Debugger: NO
+- SD File Patcher: NO
 - SD Cheats: YES
 
 Then click "Launch Game".
@@ -97,6 +98,9 @@ Start Homebrew Channel, remove SD card, then open USB Loader GX *(if it's starte
 Verify: (Global) Settings → Loader Settings → Ocarina: ON.
 
 Then start the game. If the above setting is on and there's no warning when starting the game, cheats have successfully loaded.
+
+**Troubleshooting**  
+If the game is detected but fails to start, switch the USB drive to the other port. The right port (when the Wii is standing) has better hardware/driver compatibility than the left.
 
 ## Dolphin
 

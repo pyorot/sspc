@@ -1,6 +1,7 @@
 # Addresses
 # 8059CF8C	[2B]	input buffer
-# 805789F4	[1B]	ptr to thing that triggers reload when set to 5 at offset 0x23c
+# 805789F4	[4B]	ptr to Reloader
+# 805789FD  [1B]    reload type (for Reloader)
 # 805B6B0C	[4B]	location (text)
 # 805B6B10	[4B]	location ctd. (text)
 # 805B6B2F	[1B]	layer
