@@ -51,7 +51,7 @@ Restores your stored file and respawn data (see → press), then triggers a relo
 *Notes:*
 * Don't reload during a death continue screen; it'll fade to black and softlock.
 * If no store had been done, the reload will be blocked, but the current spawn data is now invalid and has to be fixed by using a loading zone before future stores/loads work.
-* Reloading into a different area can lead into a partially-loaded area and softlock; a different map can lead to a crash (I gotta look into how loading works a bit more). Stay in the same area for safety.
+* Reloading into a different area can lead into an unloaded area and softlock; a different map can lead to a crash (I gotta look into how loading works a bit more). Stay in the same area for safety.
 
 *Psuedocode:*  
 ```
@@ -93,6 +93,9 @@ Enables/disables cutscene skips, showing a green/purple potion respectively. The
 | Fi: Viewing Platform | Cube Warp |
 | Fi: Skyview Complete | Ghirahim Scaldera  
 
+*Notes:*
+* If a cutscene skip messes up your position/camera/stamina meter (or anything else), that's unintentional.
+
 *Psuedocode:*  
 ```
 alternate between:  
@@ -101,7 +104,7 @@ alternate between:
 ```
 
 ### Z + ↑ : Contextual Toggle
-Enables/disables context-dependent cheats, showing a green/purple potion respectively. Flag 1 is set to whether this is enabled.
+Enables/disables context-dependent cheats, showing a green/purple potion respectively. Flag 1 (in the cheats) is set to whether this is enabled.
 
 **Scaldera:**  
 Forces entrance to 1 while in ET boss room (B200).  

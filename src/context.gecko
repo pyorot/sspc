@@ -22,7 +22,7 @@ E0000000 80008000
         E2000001 80008000       # endif ×1
     
     # Skyloft (Layer 3)         # for sidehop cs skip practice
-    205B6B0D 46303030           # if (4B) Skyloft (F000)
+    205B6B0D 46303030           # if (4B) Skyloft (F000) (end-if)
         285B6B2E FF000003       # if (2B w/ mask) layer 3
             48000000 805789F4	    # set PA to reloader thingie
             DE000000 80008180	    # assert pointer

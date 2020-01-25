@@ -38,6 +38,7 @@ It builds all codes present in `/src`, resolving all references to ASM files in 
 |  |  |
 | - | - |
 | **context (Scaldera)** | shoutplenty |
+| **context (Sidehop CS Skip)** | shoutplenty, [dragonbane0](https://pastebin.com/NER1W8pR) |
 | **cutscene** | shoutplenty |
 | **spawn** | shoutplenty, [dragonbane0](https://pastebin.com/NER1W8pR) |
 

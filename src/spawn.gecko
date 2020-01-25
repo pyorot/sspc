@@ -20,7 +20,7 @@
     84000002 805B6B2F	    # load 1B layer from GR 2
     84000003 805B6B30	    # load 1B entrance from GR 3
     285B6B0C 17574020       # if location is valid (custom mask for regex /[BDFS][0-4e]../; see Stage folder)
-        48000000 805789F4	    # set PA to reloader
+        48000000 805789F4	    # set PA to reloader (do this before next line to cut out an end-if code)
         2859CF8C 00004001       # if C+left
             005789FD 00000001       # set reload type to 1 = "from save" (gets zeroed after reload)
         DE000001 80008180	    # assert pointer (end-if)

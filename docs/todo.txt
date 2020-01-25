@@ -1,3 +1,17 @@
-1   Patch more cutscenes
-    – Eldin Volcano
-2   Investigate unloaded room respawns
+Cutscene skips up to Eldin Spring:
+– Meeting Plats
+– Digging Mitts
+– Middle Mogma
+– Impa Bridge
+– Just Sayin'
+– Pre-Bombs
+– Bomb Bag
+– Bombs
+
+Potential improvements:
+– Partial loads:
+  – Indirect respawn into Whirlpool from Behind the Temple
+  – Direct respawns into Skyview (e.g. Stalfos)
+– Softlocks + crashes:
+  – Disable reload during death screen
+  – Either direct reload or c-press crashes in BiT?
