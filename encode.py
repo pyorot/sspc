@@ -1,6 +1,6 @@
 import sys
 import os
-import re
+import compiler
 
 g,d,a = True,True,False
 if len(sys.argv) >=2:
@@ -21,56 +21,33 @@ if a:
     print('Info: assemble finished')
 
 if not os.path.exists('build'): os.mkdir('build')
-validator = re.compile(r'^[0-9a-f]{8}\s[0-9a-f]{8}$')       # regex to validate gecko syntax
-validator_expansion = re.compile(r'^{([0-9a-z\-]+).asm}$')  # regex to validate expansion syntax
 
-names = []
 outputs = []
 for filename in os.listdir('src'):
     if filename.endswith(".gecko"):
-        text = ''
+        code = compiler.CheatCode(filename[:-6])
         with open('src/' + filename, 'r') as srcfile:
-            while True:
-                line = srcfile.readline()
-                if line:
-                    item = line.split('#')[0].strip().lower()
-                    if item:
-                        if validator.match(item):               # line of gecko
-                            text += item + '\n'
-                        elif validator_expansion.match(item):   # expansion command
-                            try:
-                                expandname = validator_expansion.match(item).group(1)
-                                with open(f'build-asm/{expandname}.gecko', 'r') as expandfile:
-                                    text += expandfile.read().lower()
-                                print(f'Info: expanded file: {expandname}.asm in {filename}')
-                            except FileNotFoundError:
-                                print(f'Error: expansion file not found: {expandname}.asm')
-                                exit()
-                        else:
-                            print(f'Error: invalid syntax: "{item}" in {filename}')
-                            exit()
-                else:
-                    break
-            if text:
-                outputs.append(text)
-                names.append(filename[:-6])
-                print(f'Info: will encode: {filename}')
-            else:
+            if not code.lex(srcfile):
+                exit()
+            if code.isEmpty():
                 print(f'Warning: ignoring empty file: {filename}')
+            else:
+                print(f'Info: will encode: {filename}')
+                outputs.append(code)
 
 if outputs:
     if g:
         with open('build/sspc.gct', 'wb') as gfile:
             gfile.write(bytes.fromhex('00d0c0de00d0c0de'))
             for code in outputs:
-                gfile.write(bytes.fromhex(''.join(code.split())))
+                gfile.write(bytes.fromhex(''.join(code.getText().split())))
             gfile.write(bytes.fromhex('f000000000000000'))
         print('Info: encoded GCT')
     if d:
         with open('build/sspc.ini', 'w') as dfile:
             dfile.write('[Gecko]\n')
-            for i in range(len(outputs)):
-                dfile.write('$sspc | ' + names[i] + '\n' + outputs[i])
+            for code in outputs:
+                dfile.write('$sspc | ' + code.name + '\n' + code.getText())
         print('Info: encoded Dolphin INI')
 else:
     print('Error: nothing to encode.')
