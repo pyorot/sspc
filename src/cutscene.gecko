@@ -1,3 +1,4 @@
+!assertgame RVL-SOUJ-0A-0
 # set/unset cutscene skips by patching FLW3 segments in msbf files
 # switch block:
 48000000 803D2144       # set PA to 90000000 (BA is 80000000)

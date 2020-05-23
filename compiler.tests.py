@@ -2,36 +2,73 @@ import unittest
 import os
 import compiler
 
+class FileMock:
+    def __init__(self, text):
+        self.text = text.split('\n')
+        self.line = 0
+    def readline(self):
+        if self.line < len(self.text):
+            line = self.text[self.line]
+            self.line += 1
+            return line + '\n'
+        return None
+
+class Flag:
+    def __init__(self):
+        self.isSet = False
+        # self.doPrint = True
+    def set(self, err):
+        self.setNoErr()
+        self.errNoSet(err)
+    def setNoErr(self):
+        self.isSet = True
+    def errNoSet(self, err):
+        if 'doPrint' in self.__dict__ and self.doPrint:
+            print (err)
+        
 class CompilerTestCases(unittest.TestCase):
-    def lineTest(self, text, expectedResult, expectFail=False, expectEmpty=False):
-        code = compiler.CheatCode('name')
-        passed = code.lexLine(text)
-        if expectFail:
-            self.assertFalse(passed)
-        else:
+    def setUp(self):
+        flag = Flag()
+        self.aliases = compiler.getAliasList('src/aliases.xml', flag.errNoSet)
+    def lineTest(self, text, expectedResult, opts = {}):
+        expectFail = opts['expectfail'] if 'expectfail' in opts else False
+        expectFailAll = opts['expectfailall'] if 'expectfailall' in opts else False
+        expectEmpty = opts['expectempty'] if 'expectempty' in opts else False
+        game = opts['game'] if 'game' in opts else 'RVL-SOUJ-0A-0'
+        code = compiler.CheatCode('name', game, self.aliases)
+        flagGlobal = Flag()
+        flagLocal = Flag()
+        code.lineLexer(text)(flagLocal.errNoSet, flagLocal.set, flagGlobal.set)
+        self.assertEqual(expectFail, flagLocal.isSet)
+        self.assertEqual(expectFailAll, flagGlobal.isSet)
+        if not (expectFail or expectFailAll):
             actualText = code.getText()
             if expectEmpty:
                 self.assertTrue(code.isEmpty())
             self.assertEqual(expectedResult, actualText.strip())
-    def fileTest(self, text, expectedResult):
-        code = compiler.CheatCode('name')
-        class FileMock:
-            def __init__(self, text):
-                self.text = text.split('\n')
-                self.line = 0
-            def readline(self):
-                if self.line < len(self.text):
-                    line = self.text[self.line]
-                    self.line += 1
-                    return line + '\n'
-                return None
+    def fileTest(self, text, expectedResult, opts = {}):
+        game = opts['game'] if 'game' in opts else 'RVL-SOUJ-0A-0'
+        expectfailall = opts['expectfailall'] if 'expectfailall' in opts else False
+        code = compiler.CheatCode('name', game, self.aliases)
         file = FileMock(text)
-        self.assertTrue(code.lex(file))
+        flag = Flag()
+        code.lexer(file)(flag.setNoErr, flag.errNoSet)
+        self.assertEqual(expectfailall, flag.isSet)
         self.assertEqual(code.getText().strip(), expectedResult)
+    def lineTestAlias(self, text, expectedResult, game = 'RVL-SOUJ-0A-0'):
+        self.lineTest(text, expectedResult, { 'game': game })
+    def test_failed_gameassert(self):
+        self.lineTest('!assertgame RVL-SOUE-0A-0', '', { 'expectfail': True })
+    def test_versionfree_gameassert_fail(self):
+        self.fileTest('''!assertgame *
+82000000 (ReloaderPtr)''', '', { 'expectfailall': True })
+    def test_versionfree_gameassert_pass(self):
+        self.fileTest('''!assertgame *
+82000000 (CurrentFiles)''', '82000000 8095545C')
     def test_invalid_syntax(self):
-        self.lineTest('int main(int argc, char** argv) {', '', True)
+        self.lineTest('int main(int argc, char** argv) {', '', { 'expectfailall': True })
     def test_empty_line(self):
-        self.lineTest('', '', False, True)
+        self.lineTest('', '', { 'expectempty': True })
     def test_empty_file(self):
         self.fileTest('', '')
     def test_gecko(self):
@@ -40,7 +77,10 @@ class CompilerTestCases(unittest.TestCase):
         self.lineTest('  0000159C 00010004  # A comment of some sort', '0000159C 00010004')
     def test_asm(self):
         tmpfilename = 'tmp-test'
-        with open('build-asm/{0}.gecko'.format(tmpfilename), 'w') as asmfile:
+        gameFolder = 'build-asm/RVL-SOUJ-0A-0'
+        geckopath = f'{gameFolder}/{tmpfilename}.gecko'
+        if not os.path.exists(gameFolder): os.mkdir(gameFolder)
+        with open(geckopath, 'w') as asmfile:
             asmfile.write('''C0000000 00000001
 4E800020 00000000''')
         self.fileTest('''00001500 00000000
@@ -49,7 +89,7 @@ class CompilerTestCases(unittest.TestCase):
 C0000000 00000001
 4E800020 00000000
 00001501 00000000''')
-        os.remove('build-asm/{0}.gecko'.format(tmpfilename))
+        os.remove(geckopath)
     def test_gosub(self):
         input = '''gosub 5 a_label
         00001500 000000FF
@@ -91,6 +131,24 @@ E0000000 80008000'''
         self.lineTest('grB := h [ 80001500 ]', '8210000B 80001500')
         self.lineTest('grB:=w[80001500]', '8220000B 80001500')
         self.lineTest('grB := w [ 80001500 ]', '8220000B 80001500')
+    def test_tmp(self):
+        self.lineTestAlias('[ba+(EmptyA&+00A0)] := w gr0', '84210000 000015A0')
+    def test_aliases(self):
+        self.lineTestAlias('28000000+(InputBuffer&) 40000001', '2859CF8C 40000001')
+        self.lineTestAlias('28000000+(InputBuffer&) 40000001', '2859B48C 40000001', 'RVL-SOUP-0A-1')
+        self.lineTestAlias('28000000+(InputBuffer&) 40000001', '2859B28C 40000001', 'RVL-SOUP-0A-0')
+
+        self.lineTestAlias('[gr5] := [ba+(ReloaderPtr&)]', '8C0001F5 005789F4')
+        self.lineTestAlias('[gr5] := [ba+(ReloaderPtr&)]', '8C0001F5 00576ED4', 'RVL-SOUP-0A-1')
+        self.lineTestAlias('[gr5] := [ba+(ReloaderPtr&)]', '8C0001F5 00576D34', 'RVL-SOUP-0A-0')
+
+        self.lineTestAlias('grB:=b[(LoadMeta)]', '8200000B 805B6B2E')
+        self.lineTestAlias('grB:=b[(LoadMeta)]', '8200000B 805B5002', 'RVL-SOUP-0A-1')
+        self.lineTestAlias('grB:=b[(LoadMeta)]', '8200000B 805B4E02', 'RVL-SOUP-0A-0')
+
+        self.lineTestAlias('[gr5] := [ba+(ReloaderPtr&+A)]', '8C0001F5 005789FE')
+        self.lineTestAlias('[gr5] := [ba+(ReloaderPtr&+A)]', '8C0001F5 00576EDE', 'RVL-SOUP-0A-1')
+        self.lineTestAlias('[gr5] := [ba+(ReloaderPtr&+A)]', '8C0001F5 00576D3E', 'RVL-SOUP-0A-0')
     def test_write_mem(self):
         tests = [
             [ '[ba+1500]:=bCD', '00001500 000000CD' ],
