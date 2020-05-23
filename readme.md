@@ -1,9 +1,11 @@
 # **sspc**: Skyward Sword Practice Codes
 
-This is the source code for [Skyward Sword Practice Codes](https://shoutplenty.tk/ss/pc). It's written in Gecko for the cheat engine used by GameCube/Wii emulators/loaders, with some snippets written in the assembly (ASM) language of those systems.
+This is the source code for [Skyward Sword Practice Codes](https://shoutplenty.uk/ss/pc). It's written in Gecko for the cheat engine used by GameCube/Wii emulators/loaders, with some snippets written in the assembly (ASM) language of those systems.
 
 ## Release
-The codes themselves and all help material are published at <https://shoutplenty.tk/ss/pc>.
+The codes themselves and all help material are published at <https://shoutplenty.uk/ss/pc>.
+
+*(If this domain expires, there's also <https://shoutplenty.netlify.app/ss/pc>.)*
 
 ## Collab
 I hope this becomes a collaborative project. I'll review pull requests and discuss works on the [Skyward Sword discord](https://discordapp.com/invite/fa5kpVa). I've done my best to document things in comments and in the docs folder, so jump in :P.
