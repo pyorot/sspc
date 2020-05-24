@@ -1,6 +1,8 @@
 import sys
 import os
-import compiler
+from compiler import CheatCode
+from compiler_aliasing import getAliasList
+from compiler_syntax import Context
 
 def doPrint(arg):
     print (arg)
@@ -35,8 +37,7 @@ for arg in sys.argv[1:-1]:
         exit()
 
 doPrint(f'== encode.py {commandsText} ==')
-
-aliasList = compiler.getAliasList('src/aliases.xml', doPrint)
+aliasList = getAliasList('src/aliases.xml', doPrint)
 gameList = aliasList.getGameList(gameFilter)
 
 def ensuredir(path):
@@ -50,7 +51,7 @@ def compileAsm(gamePath, gameMacro):
     with open(f'build-asm/{gamePath}/aliases.asm', 'w') as aliasOut:
         for macro in aliasList.getMacrosForGame(gameMacro):
             aliasOut.write(macro + '\n')
-    os.system(f'sh assemble.sh {gamePath}')
+    os.system(f'"C:/Program Files/Git/git-bash.exe" -l assemble.sh {gamePath}')
 
 if a:
     for game in gameList:
@@ -63,13 +64,13 @@ for filename in os.listdir('src'):
     if codeFilter in filename:
         for game in gameList:
             if filename.endswith(".gecko"):
-                code = compiler.CheatCode(filename[:-6], game, aliasList)
+                code = CheatCode(Context(game, filename[:-6], doPrint, exit), aliasList)
                 with open('src/' + filename, 'r') as srcfile:
-                    code.lexer(srcfile)(exit, doPrint)
-                    if not code.aborted:
-                        if code.isEmpty() and not code.aborted:
+                    code.lexFile(srcfile)
+                    if not code.context.aborted:
+                        if code.isEmpty():
                             doPrint(f'Warning: ignoring empty file: {filename}')
-                        elif not code.aborted:
+                        else:
                             doPrint(f'Info: will encode: {filename} for {game}')
                             if game in outputs:
                                 outputs[game].append(code)
@@ -94,15 +95,15 @@ if outputs:
                     with open(gctPath, 'wb') as gfile:
                         gfile.write(bytes.fromhex('00d0c0de00d0c0de'))
                         for code in codes:
-                            doPrint(f'    Encoding {code.name} into gct...')
+                            doPrint(f'    Encoding {code.context.name} into gct...')
                             gfile.write(bytes.fromhex(''.join(code.getText().split())))
                         gfile.write(bytes.fromhex('f000000000000000'))
                 if d:
                     with open(iniPath, 'w') as dfile:
                         dfile.write('[Gecko]\n')
                         for code in codes:
-                            doPrint(f'    Encoding {code.name} into ini...')
-                            dfile.write('$sspc | ' + code.name + '\n' + code.getText())
+                            doPrint(f'    Encoding {code.context.name} into ini...')
+                            dfile.write('$sspc | ' + code.context.name + '\n' + code.getText())
         if not encode:
             noCodes()
 else:

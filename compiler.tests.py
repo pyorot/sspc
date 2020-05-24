@@ -1,59 +1,51 @@
 import unittest
 import os
-import compiler
-
-class FileMock:
-    def __init__(self, text):
-        self.text = text.split('\n')
-        self.line = 0
-    def readline(self):
-        if self.line < len(self.text):
-            line = self.text[self.line]
-            self.line += 1
-            return line + '\n'
-        return None
+from compiler import CheatCode
+from compiler_syntax import Context
+from compiler_aliasing import getAliasList
 
 class Flag:
     def __init__(self):
         self.isSet = False
-        # self.doPrint = True
+        self.printLevel = 0
     def set(self, err):
         self.setNoErr()
         self.errNoSet(err)
     def setNoErr(self):
         self.isSet = True
     def errNoSet(self, err):
-        if 'doPrint' in self.__dict__ and self.doPrint:
+        if self.printLevel > 0:
             print (err)
-        
+
 class CompilerTestCases(unittest.TestCase):
     def setUp(self):
-        flag = Flag()
-        self.aliases = compiler.getAliasList('src/aliases.xml', flag.errNoSet)
+        self.aliases = getAliasList('src/aliases.xml', None)
+    def newCode(self, game):
+        ctx = Context(game, 'name', self.flag.errNoSet, self.flag.setNoErr)
+        return CheatCode(ctx, self.aliases)
     def lineTest(self, text, expectedResult, opts = {}):
+        self.flag = Flag()
         expectFail = opts['expectfail'] if 'expectfail' in opts else False
         expectFailAll = opts['expectfailall'] if 'expectfailall' in opts else False
         expectEmpty = opts['expectempty'] if 'expectempty' in opts else False
         game = opts['game'] if 'game' in opts else 'RVL-SOUJ-0A-0'
-        code = compiler.CheatCode('name', game, self.aliases)
-        flagGlobal = Flag()
-        flagLocal = Flag()
-        code.lineLexer(text)(flagLocal.errNoSet, flagLocal.set, flagGlobal.set)
-        self.assertEqual(expectFail, flagLocal.isSet)
-        self.assertEqual(expectFailAll, flagGlobal.isSet)
+        code = self.newCode(game)
+        code.lexLine(text)
+        self.flag.errNoSet(f'Parsing {text} and ef = {expectFail} and efa = {expectFailAll} and aborted is {code.context.aborted}')
+        self.assertEqual(expectFail or expectFailAll, code.context.aborted)
+        self.assertEqual(expectFailAll, self.flag.isSet and code.context.allAborted)
         if not (expectFail or expectFailAll):
             actualText = code.getText()
             if expectEmpty:
                 self.assertTrue(code.isEmpty())
             self.assertEqual(expectedResult, actualText.strip())
     def fileTest(self, text, expectedResult, opts = {}):
+        self.flag = Flag()
         game = opts['game'] if 'game' in opts else 'RVL-SOUJ-0A-0'
         expectfailall = opts['expectfailall'] if 'expectfailall' in opts else False
-        code = compiler.CheatCode('name', game, self.aliases)
-        file = FileMock(text)
-        flag = Flag()
-        code.lexer(file)(flag.setNoErr, flag.errNoSet)
-        self.assertEqual(expectfailall, flag.isSet)
+        code = self.newCode(game)
+        code.lexFile(map(lambda l: l.strip(), text.split('\n')))
+        self.assertEqual(expectfailall, self.flag.isSet)
         self.assertEqual(code.getText().strip(), expectedResult)
     def lineTestAlias(self, text, expectedResult, game = 'RVL-SOUJ-0A-0'):
         self.lineTest(text, expectedResult, { 'game': game })
