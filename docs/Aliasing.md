@@ -100,13 +100,13 @@ In asm, such an aliased address can be used as a defined macro. So, for example,
 
 ```
     lis r4,LinkPtr @h
-    ori r4,LinkPtr @l
+    ori r4,r4,LinkPtr @l
 ```
 
-In gecko, on the other hand, an aliased address can be used by surrounding the alias with parentheses...
+In gecko, on the other hand, an aliased address can be used by surrounding the alias with angle brackets...
 
 ```
-80000005 (LinkPtr)  # Set gr5 to link pointer
+80000005 <LinkPtr>  # Set gr5 to link pointer
 ```
 
 will compile to `80000005 805789EC` on NTSC-J and to `80000005 8057578C` on NTSC-U 1.0.
@@ -120,19 +120,13 @@ However, sometimes a gecko line wants the first seven bits of the address to be 
 The `80` is missing from the front of the address since this code is actually using base address plus an offset. Doing this won't work...
 
 ```
-28(LinkPtr) 00000000    # Compiles to `28805789EC 00000000` which is not a valid Gecko line
+28<LinkPtr> 00000000    # Compiles to `28805789EC 00000000` which is not a valid Gecko line
 ```
 
-However, you can place an `&` after the alias to mask off the first seven bits, but we're still not quite done...
+However, you can place a `|` before the alias to mask off the first seven bits...
 
 ```
-28(LinkPtr&) 00000000   # Compiles to `28005789EC 00000000` which is still not a valid Gecko line
-```
-
-You have to use the plus operator to make it work...
-
-```
-28000000+(LinkPtr&) 00000000    # Compiles to `285789EC 00000000` on NTSC-J and `2857578C 00000000` on NTSC-U 1.0.
+28|<LinkPtr> 00000000   # Compiles to `285789EC 00000000` on NTSC-J and `2857578C 00000000` on NTSC-U 1.0.
 ```
 
 ## Game Version Management
@@ -161,23 +155,19 @@ This section is intended as documentation for the aliasing python logic in a tec
 
 ## compiler_syntax.py
 
-The compiler_syntax.py file is responsible for parsing individual lines. It consists of a number of functions and a list of regexes to go with them. Adding a new alias is as easy as adding a new entry to the validators array at the bottom of that file, with a regex to match on your desired syntax and a function to handle the conversion to gecko. The first validator in the list to match a line will be given priority.
+The compiler_syntax.py file is responsible for parsing individual lines. It consists of a number of functions and a list of regexes to go with them. Adding a new alias is as easy as adding a new function with the regex as exemplified many times in that file. The first validator in the list to match a line will be given priority.
 
 ### Example: Load Memory Into Gecko Register
 
 ```python
-def flowLoadMemToGR(match, context):
-    register = match.group(1)
-    typeChar = match.group(2)
-    address = match.group(3)
-    yield "82{0}0000{1} {2}".format(typeConvert[typeChar], register, address)
+def flowLoadMemToGR(match):
+    return f'82{typeConvert[match.group(2)]}0000{match.group(1)} {match.group(3)}'
+validators.append([ re.compile(r'^gr([0-9a-f])\s*:=\s*([bhw])\s*\[\s*([0-9a-f]{8})\s*\]$', re.IGNORECASE), flowLoadMemToGR ])
 ```
 
-The validator function must take two arguments. The first argument will be the regex match that was performed. The function will not be called unless the match succeeded, but the match is still passed for the sake of extracting capturing groups. In this case, the gecko register is in group 1, the type of the memory to load is in group 2, and the address is in group 3.
+The validator function may take 0, 1, or 2 arguments. The first argument, if extant, will be the match object returned from the regex match. The function will not be called unless the match succeeded, but the match is still passed for the sake of extracting capturing groups. The second argument, if extant, will be the current gecko token, which exposes useful attributes such as `game` and `name` for the current game version and code name respectively, as well as logging methods such as `addinfo`, `addwarning`, `adderror`, and `addfatal`. In the above example, the gecko register is in group 1, the type of the memory to load is in group 2, and the address is in group 3.
 
-The second argument is some context data and functions for the cheat code. It contains information like the name of the code, the version of the game the code is being compiled for, the current line number, and data about what lines a label belongs to. If your use case requires data that is not currently tracked, you can add it to the context (which is defined at the top of this same compiler_syntax file).
-
-The validator function must return an iterable, where each item is either a string or a parameter-less function which returns a string. If a function is returned, it will not be executed until after the entire code file has been read. This is to support flow control involving labels that are farther down in the file.
+The validator function may return a string (which will be treated as raw gecko), a function (which will be called later with the token as the sole argument--for the sake of looking up label addresses *after* the file has been parsed), or an iterable of the above.
 
 It is recommended that all of these regexes be case insensitive and be generous in supporting user-inserted whitespace between tokens of distinct meaning. Returning again to the gecko register memory load syntax, all of the following are equivalent...
 
@@ -189,10 +179,10 @@ gr0 := h [80001000]
 gr0    :=    h    [    80001000    ]
 ```
 
-## compiler_aliasing.py
+## <span>alias.py</span>
 
-An AliasList object is constructed by the `getAliasList` function from the appropriate file type. This object maintains the list of aliases and is used for setting asm macros and replacing alias occurrences in gecko strings.
+An AliasList object is constructed by the `read_aliases` function from the appropriate file type. This object maintains the list of aliases and is used for setting asm macros and replacing alias occurrences in gecko strings.
 
 ## <span>compiler.py</span>
 
-The compiler file has a single class called CheatCode, which is responsible for navigating the parsing of a single cheat code file for a single version of the game. It is constructed with an AliasList, constructed from compiler_aliasing, and a Context, constructed from compiler_syntax. It has four methods: `lexFile`, which takes a file to be parsed and stores the resulting tokens; `lexLine`, which takes a single line of text and stores the resulting tokens; `isEmpty`, which simply returns True or False depending on whether any tokens have been stored; and `getText`, which returns the text of all stored tokens.
+The compiler file has a single relevant class called Context, which is passed to the main function of the file, `compile`. The Context provides game, code, and aliasing information throughout the parsing process. The compile function uses a functional style to return a single parsed gecko code, with the context, any logs, and an array of the lines of gecko code as attributes.
