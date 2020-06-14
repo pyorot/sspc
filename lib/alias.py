@@ -32,32 +32,49 @@ class AliasData:
         value = self.getvalue(version)
         return f'.set {self.alias}, 0x{value:08X}' if value else ''
 
+aliasReplacer = re.compile(r'\<\s*(?P<alias>\w+)\s*\>', re.IGNORECASE)
+def binaryPattern(separator):
+    return r'(?P<addend1>(?<!gr)[0-9a-f]{1,8}(?<!ba))\s*' + separator + r'\s*(?P<addend2>[0-9a-f]{1,8})'
+additionReplacer = re.compile(binaryPattern(r'\+'), re.IGNORECASE)
+orfinder = re.compile(r'\|\s*(?P<value>[0-9a-f]{1,8})', re.IGNORECASE)
+orcombiner = re.compile(binaryPattern(r'\|'), re.IGNORECASE)
+
 class AliasList:
+    """Alias collection as parsed from an aliases.yaml file"""
     def __init__(self, games, aliases):
         self.games = games
         self.aliases = aliases
-        self.geckoLineReplacer = re.compile(r'((?P<source>[0-9a-f]{1,8})\s*(?P<or>\|))?\<(?P<alias>\w+)(?:\+(?P<add>[0-9a-f]+))?\>', re.IGNORECASE)
     def get(self, alias, game):
+        """Gets the value of a given alias for a given game version. Returns the integer value of the address.
+        Returns None if the alias-game combination cannot be resolved.
+        
+        Keyword arguments:
+        alias -- string, alias to search for
+        game -- string, game version whose value is desired, use '*' to get the universal value if present, universal
+        value will also be used if no value can be found for the specified game"""
         return self.aliases[alias].getvalue(game) if alias in self.aliases else None
     def replace(self, text, version):
-        def groupOrDefault(groupname, match, default):
-            return match.group(groupname) if groupname in match.groupdict() and match.group(groupname) else default
-        def gRepl(matchobj):
-            value = groupOrDefault('source', matchobj, '0')
-            prefix = ''
-            if value.upper() == 'BA':
-                # Leave ba+ as base address instead of 0xBA
-                value = '0'
-                prefix = 'ba|'
-            value = int(value, 16)
-            aliasResult = self.get(matchobj.group('alias'), version)
-            andPresent = groupOrDefault('or', matchobj, '')
-            if not aliasResult is None:
-                if andPresent:
-                    aliasResult %= 0x02000000
-                return prefix + f'{value + aliasResult + int(groupOrDefault("add", matchobj, "0"), 16):08X}'
+        """Replaces aliases in a line of gecko text and returns the text with the alias replaced and all subsequent operations performed.
+        
+        Keyword arguments:
+        text -- string, the text possibly containing an alias
+        version -- string, current game version"""
+        def aliasRepl(matchobj):
+            value = self.get(matchobj.group("alias"), version)
+            if value:
+                return f'{value:08X}'
             return matchobj.group(0)
-        return re.sub(self.geckoLineReplacer, gRepl, text)
+        def addRepl(matchobj):
+            addend1 = int(matchobj.group('addend1'), 16)
+            addend2 = int(matchobj.group('addend2'), 16)
+            return f'{addend1 + addend2:08X}'
+        def orRepl(matchobj):
+            value = int(matchobj.group('value'), 16) % 0x02000000
+            return f'|{value:08X}'
+        text = re.sub(aliasReplacer, aliasRepl, text)
+        text = re.sub(additionReplacer, addRepl, text)
+        text = re.sub(orfinder, orRepl, text)
+        return re.sub(orcombiner, addRepl, text)
     def getMacrosForGame(self, game):
         for k in self.aliases:
             m = self.aliases[k].getmacro(game)
@@ -83,6 +100,11 @@ def filector(basector, node):
     return defaultctor(basector, node)
 
 def read_aliases(file):
-    yaml.SafeLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, filector)
+    """Reads an aliases.yaml file and returns the constructed AliasList
+    
+    Keyword arguments:
+    file -- string, path to the yaml file"""
     with open(file) as f:
-        return yaml.load(f, Loader=yaml.SafeLoader)
+        return yaml.safe_load(f)
+
+yaml.SafeLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, filector)

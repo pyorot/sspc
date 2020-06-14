@@ -3,6 +3,7 @@ import os
 import inspect
 from lib.compiler import compile, Context
 from lib.alias import read_aliases
+import sys
 
 class CompilerTestCases(unittest.TestCase):
     def setUp(self):
@@ -109,13 +110,36 @@ E0000000 80008000'''
         self.run_testAlias('[gr5] := [ba|<ReloaderPtr>]', '8C0001F5 00576ED4', 'RVL-SOUP-0A-1')
         self.run_testAlias('[gr5] := [ba|<ReloaderPtr>]', '8C0001F5 00576D34', 'RVL-SOUP-0A-0')
 
-        self.run_testAlias('grB:=b[<LoadMeta>]', '8200000B 805B6B2E')
-        self.run_testAlias('grB:=b[<LoadMeta>]', '8200000B 805B5002', 'RVL-SOUP-0A-1')
-        self.run_testAlias('grB:=b[<LoadMeta>]', '8200000B 805B4E02', 'RVL-SOUP-0A-0')
+        self.run_testAlias('grB:=b[<Spawn>]', '8200000B 805B6B0C')
+        self.run_testAlias('grB:=b[<Spawn>]', '8200000B 805B4FE0', 'RVL-SOUP-0A-1')
+        self.run_testAlias('grB:=b[<Spawn>]', '8200000B 805B4DE0', 'RVL-SOUP-0A-0')
+        
+        self.run_testAlias('grB:=w<Spawn>', '8020000B 805B6B0C')
+        self.run_testAlias('grB:=h[<Spawn>]', '8210000B 805B6B0C')
+        self.run_testAlias('grB:=h[ba|<Spawn>]', '8211000B 005B6B0C')
+        self.run_testAlias('grB:=h[po|<Spawn>]', '9211000B 005B6B0C')
 
-        self.run_testAlias('[gr5] := [ba|<ReloaderPtr+A>]', '8C0001F5 005789FE')
-        self.run_testAlias('[gr5] := [ba|<ReloaderPtr+A>]', '8C0001F5 00576EDE', 'RVL-SOUP-0A-1')
-        self.run_testAlias('[gr5] := [ba|<ReloaderPtr+A>]', '8C0001F5 00576D3E', 'RVL-SOUP-0A-0')
+        self.run_testAlias('[gr5] := [ba|<ReloaderPtr> + A]', '8C0001F5 005789FE')
+        self.run_testAlias('[gr5] := [ba|<ReloaderPtr> + A]', '8C0001F5 00576EDE', 'RVL-SOUP-0A-1')
+        self.run_testAlias('[gr5] := [ba|<ReloaderPtr> + A]', '8C0001F5 00576D3E', 'RVL-SOUP-0A-0')
+    def test_endif(self):
+        self.run_test('endif A', 'E200000A 00000000')
+        self.run_test('endif 10', 'E2000010 00000000')
+        self.run_test('endif *', 'E0000000 80008000')
+    def test_ifptr(self):
+        self.run_test('ifptr', 'DE000000 80008180')
+        self.run_test("'ifptr", 'DE000001 80008180')
+    def test_if(self):
+        self.run_test('ifm [ba|<SettingsFlags>+4] / FF00 == 0001', '28004204 FF000001')
+        self.run_test('if [ba|<Spawn>] == 42323030', '205B6B0C 42323030')
+        
+        self.run_test('\'ifm [ba|<SettingsFlags>+4] / FF00 == 0001', '28004205 FF000001')
+        self.run_test('\'if [ba|<Spawn>] == 42323030', '205B6B0D 42323030')
+    def test_address_assign(self):
+        self.run_test('ba:=<Spawn>', '42000000 805B6B0C')
+        self.run_test('ba:=[<Spawn>]', '40000000 805B6B0C')
+        self.run_test('po:=<Spawn>', '4A000000 805B6B0C')
+        self.run_test('po:=[<Spawn>]', '48000000 805B6B0C')
     def test_write_mem(self):
         tests = [
             [ '[ba|1500]:=bCD', '00001500 000000CD' ],

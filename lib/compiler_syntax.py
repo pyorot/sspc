@@ -30,6 +30,56 @@ def flowGecko(match):
     return match.group(1).replace('|', '')
 validators.append([ re.compile(r'^(?:\|)?([0-9a-f]{8}\s(?:\|)?[0-9a-f]{8})$', re.IGNORECASE), flowGecko ])
 
+def flowEndif(match):
+    count = match.group('count')
+    if count == '*':
+        return 'E0000000 80008000'
+    return f'E20000{int(count,16):02X} 00000000'
+validators.append([ re.compile(r'^endif\s+(?P<count>(?:[0-9a-f]{1,2}|\*))', re.IGNORECASE), flowEndif])
+
+def flowIf(match, token):
+    operators = {
+        '==': 0,
+        '!=': 2,
+        '>': 4,
+        '<': 6
+    }
+    withmask = match.group('if').endswith('m')
+    withendif = match.group('if').startswith("'")
+    startByte = (0x28 if withmask else 0x20) + operators[match.group('operator')] + (0x10 if match.group('bapo') == 'po' else 0)
+    comparand = int(match.group('comparand'), 16)
+    offset = int(match.group('offset'), 16) if 'offset' in match.groupdict() else 0
+    rightword = comparand
+    leftword = startByte * 0x01000000 + offset
+    leftword += 1 if withendif else 0
+    if startByte & 8 != 0:
+        if 'mask' in match.groupdict() and match.group('mask'):
+            mask = int(match.group('mask'), 16)
+            rightword = mask * 0x10000 + comparand
+        else:
+            token.addfatal('ifm requires a mask')
+            return ''
+    elif 'mask' in match.groupdict() and match.group('mask'):
+        token.addfatal('if does not support a mask; try using ifm')
+        return ''
+    return f'{leftword:08X} {rightword:08X}'
+validators.append([ re.compile(r"^(?P<if>'?ifm?)\s+\[\s*(?P<bapo>ba|po)(?:\|(?P<offset>[0-9a-f]{1,8}))?\]\s*(?:\/\s*(?P<mask>[0-9a-f]{1,4}))?\s*(?P<operator>==|<|>|!=)\s*(?P<comparand>[0-9a-f]{1,8})$", re.IGNORECASE), flowIf])
+
+def flowIfPtr(match):
+    endif = '1' if match.group('endif') else '0'
+    return f'DE00000{endif} 80008180' 
+validators.append([ re.compile(r"^(?P<endif>')?ifptr$", re.IGNORECASE), flowIfPtr])
+
+def flowAddress(match):
+    firstByte = 0x40 + (8 if match.group('bapo') == 'po' else 0)
+    value = match.group("value")
+    if value.startswith('[') and value.endswith(']'):
+        value = value[1:-1]
+    else:
+        firstByte += 2
+    return f'{firstByte:02X}000000 {int(value,16):08X}'
+validators.append([ re.compile(r'^(?P<bapo>ba|po)\s*:=\s*(?P<value>(?:\[?[0-9a-f]{1,8}\]?)|(?:[0-9a-f]{1,8}))$', re.IGNORECASE), flowAddress])
+
 def flowAsm(match, token):
     try:
         expandname = match.group(1)
@@ -53,9 +103,19 @@ typeConvert = {
     'w': 2
 }
 
-def flowLoadMemToGR(match):
-    return f'82{typeConvert[match.group(2)]}0000{match.group(1)} {match.group(3)}'
-validators.append([ re.compile(r'^gr([0-9a-f])\s*:=\s*([bhw])\s*\[\s*([0-9a-f]{8})\s*\]$', re.IGNORECASE), flowLoadMemToGR ])
+def flowLoadMemToGR(match, token):
+    register = match.group('register')
+    firstshort = 0x8000 + (0x10 * typeConvert[match.group('type')])
+    if match.group('bapo'): firstshort += 1
+    if match.group('bapo') == 'po': firstshort += 0x1000 
+    o = match.group('open') if 'open' in match.groupdict() and match.group('open') else None
+    c = match.group('close') if 'close' in match.groupdict() and match.group('open') else None
+    if o and c:
+        firstshort += 0x0200
+    elif o or c:
+        token.addfatal('Mismatched brackets')
+    return f'{firstshort:04X}000{register} {int(match.group("offset"),16):08X}'
+validators.append([ re.compile(r'^gr(?P<register>[0-9a-f])\s*:=\s*(?P<type>[bhw])\s*(?P<open>\[)?\s*(?:(?P<bapo>ba|po)\s*\|\s*)?(?P<offset>[0-9a-f]{1,8})\s*(?P<close>\])?$', re.IGNORECASE), flowLoadMemToGR ])
 
 def flowWriteToMem(match, token):
     match = match.groupdict()

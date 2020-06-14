@@ -2,7 +2,7 @@ import unittest
 import os
 from shutil import copyfile
 from shutil import rmtree
-from lib.asm import assembleasm
+from lib.asm import assemblesinglecode
 from lib.alias import read_aliases
 
 class AssemblerTestCases(unittest.TestCase):
@@ -19,7 +19,7 @@ class AssemblerTestCases(unittest.TestCase):
     def run_test(self, asmsrc, expectedgecko, versionfilter='J'):
         with open('test/src/out.asm', 'w') as f:
             f.write(asmsrc)
-        assembleasm('out', self.aliases, versionfilter, 'test/build', 'test/src')
+        assemblesinglecode('out', self.aliases, versionfilter, 'test/build', 'test/src')
         with open('test/build/RVL-SOUJ-0A-0/out.gecko', 'r') as f:
             self.assertEquals(expectedgecko, f.read().strip())
     def testasmsimple(self):

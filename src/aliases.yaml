@@ -4,8 +4,8 @@ games:
   - RVL-SOUE-0A-1
   - RVL-SOUP-0A-0
   - RVL-SOUP-0A-1
-  - RVL-SOUP-0A-2
   # As yet unused versions...
+  # - RVL-SOUP-0A-2
   # - RVL-SOUK-0A-0
   # - RVL-SOUE-0A-2
 addresses:
@@ -17,6 +17,7 @@ addresses:
     RVL-SOUE-0A-0: 8057578C
     RVL-SOUE-0A-1: 80575C6C
   LinkHeader: 80B7652C
+  SettingsFlags: 80004200
   InputBuffer:
     RVL-SOUJ-0A-0: 8059CF8C
     RVL-SOUE-0A-0: 80599D0C
@@ -35,7 +36,8 @@ addresses:
     RVL-SOUP-0A-0: 80576D3D
     RVL-SOUE-0A-0: 8057579D
     RVL-SOUE-0A-1: 80575C7D
-  MasterSpawn:
+  FileA: 80955464
+  Spawn:
     RVL-SOUJ-0A-0: 805B6B0C
     RVL-SOUP-0A-1: 805B4FE0
     RVL-SOUP-0A-0: 805B4DE0
@@ -47,12 +49,6 @@ addresses:
     RVL-SOUP-0A-0: 805B4DE0
     RVL-SOUE-0A-0: 805B388C
     RVL-SOUE-0A-1: 805B3D8C
-  LoadMeta: # Start for loading metadata. First byte is room, then layer, then entrance, then night, then trial.
-    RVL-SOUJ-0A-0: 805B6B2E
-    RVL-SOUP-0A-1: 805B5002
-    RVL-SOUP-0A-0: 805B4E02
-    RVL-SOUE-0A-0: 805B38AE
-    RVL-SOUE-0A-1: 805B3DAE
   CurrentFiles: 8095545C
   LoadToCurrent:
     RVL-SOUJ-0A-0: 800C0740

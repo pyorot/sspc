@@ -1,5 +1,7 @@
 import operator
 import re
+from typing import List, Dict
+from types import LambdaType
 from collections.abc import Iterable
 from inspect import signature
 from functools import wraps
@@ -21,53 +23,59 @@ class ParsedGecko:
         self.errlevel = errlevel
         self.context = context
     def codetext(self):
+        """All lines of compiled code, joined together by newlines"""
         return '\n'.join(map(lambda line: line.strip(), self.codelines))
 
 class Token:
     def __init__(self, other=None):
         useother = not other is None
-        self.raw = other.raw if useother else None
-        self.geckoline = other.geckoline if useother else None
-        self.rawline = other.rawline if useother else None
-        self.stripped = other.stripped if useother else None
+        self.raw: str = other.raw if useother else None
+        self.geckoline: str = other.geckoline if useother else None
+        self.rawline: int = other.rawline if useother else None
+        self.stripped: str = other.stripped if useother else None
         self.parsed = other.parsed if useother else None
-        self.fatal = other.fatal if useother else []
-        self.lookup = other.lookup if useother else None
-        self.label = other.label if useother else None
-        self.info = other.info if useother else []
-        self.warnings = other.warnings if useother else []
-        self.context = other.context if useother else None
-        self.errors = other.errors if useother else []
-        self.versionfree = other.versionfree if useother else False
-        self.isassertgame = other.isassertgame if useother else False
+        self.fatal: List[str] = other.fatal if useother else []
+        self.lookup: Dict = other.lookup if useother else None
+        self.label: str = other.label if useother else None
+        self.info: List[str] = other.info if useother else []
+        self.warnings: List[str] = other.warnings if useother else []
+        self.context: Context = other.context if useother else None
+        self.errors: List[str] = other.errors if useother else []
+        self.versionfree: bool = other.versionfree if useother else False
+        self.isassertgame: bool = other.isassertgame if useother else False
     def __len__(self):
         if isinstance(self.parsed, str):
             return 1 if self.parsed else 0
         elif isinstance(self.parsed, Iterable):
             return len(list(self.parsed))
         return 0 if hasattr(self.parsed, 'label') else 1
-    def _addItem(self, collection, item):
+    def _addItem(self, collection: List, item) -> List:
         return collection + [item] if collection else [item]
-    def addwarning(self, warn):
+    def addwarning(self, warn: str):
         self.warnings = self._addItem(self.warnings, warn)
-    def addfatal(self, err):
+    def addfatal(self, err: str):
         self.fatal = self._addItem(self.fatal, err)
-    def addinfo(self, info):
+    def addinfo(self, info: str):
         self.info = self._addItem(self.info, info)
-    def adderror(self, err):
+    def adderror(self, err: str):
         self.errors = self._addItem(self.errors, err)
 
-def compile(srccontents, context):
-    def withRawLineNumbers(sofar, line):
+def compile(srccontents: str, context: Context) -> ParsedGecko:
+    """Compiles a gecko source file into a parsed code
+    
+    Keyword arguments:
+    srccontents -- the raw contents of the file
+    context -- data about the currently compiling version and code, as well as aliasing"""
+    def withRawLineNumbers(sofar: List[Token], line: str) -> List[Token]:
         result = Token()
         result.raw = line
         result.rawline = sofar[-1].rawline + 1 if sofar else 1
         return sofar + [result]
-    def stripCommentsAndTrivia(token):
+    def stripCommentsAndTrivia(token: Token) -> Token:
         clone = Token(token)
         clone.stripped = token.raw.split('#')[0].strip()
         return clone
-    def withVersionAssert(sofar, nexttoken):
+    def withVersionAssert(sofar: List[Token], nexttoken: Token) -> List[Token]:
         clone = Token(nexttoken)
         clone.context = context
         mgame = re.compile(r'^!assertgame\s+(?P<game>(?:RVL-SOU(?:[J|K]-0A-0|[E|P]-0A-[0-2])\s*)+)$', re.IGNORECASE).match(clone.stripped)
@@ -86,11 +94,11 @@ def compile(srccontents, context):
         elif mgame or mfree:
             clone.addfatal(f'assertgame directive found after compiled code in {context.name}')
         return sofar + [clone]
-    def handleAliases(token):
+    def handleAliases(token: Token) -> Token:
         clone = Token(token)
         clone.stripped = context.aliases.replace(clone.stripped, '*' if context.versionfree else context.game)
         return clone
-    def parse(token):
+    def parse(token: Token) -> Token:
         clone = Token(token)
         if not clone.isassertgame:
             for x in validators:
@@ -107,13 +115,13 @@ def compile(srccontents, context):
             else:
                 clone.addfatal(f'Error: invalid syntax: "{clone.stripped}"')
         return clone
-    def withGeckoLineNumbers(sofar, nexttoken):
+    def withGeckoLineNumbers(sofar: List[Token], nexttoken: Token) -> List[Token]:
         clone = Token(nexttoken)
         clone.geckoline = sofar[-1].geckoline + len(sofar[-1]) if sofar else 0
         clone.lookup = sofar[-1].lookup if sofar else dict()
         clone.lookup[clone.label] = clone.geckoline
         return sofar + [clone]
-    def toGecko(token):
+    def toGecko(token: Token) -> Token:
         clone = Token(token)
         def convert_value(arg):
             if callable(arg):
@@ -138,8 +146,8 @@ def compile(srccontents, context):
         xreduce(withGeckoLineNumbers, []),              # Add gecko line number to tokens
         xmap(toGecko),                                  # Convert to gecko lines
         xflatten())                                     # Flatten any tokens that returned multiple gecko lines
-    def aggregator(sofar, token):
-        def mapper(level):
+    def aggregator(sofar: List, token: Token) -> List:
+        def mapper(level: int) -> LambdaType:
             class DisplayItem:
                 severities = [ 'Info', 'Warning', 'Error', 'Fatal' ]
                 def __init__(self, text):

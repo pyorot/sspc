@@ -16,23 +16,23 @@ if d: commandsText += 'd'
 if a: commandsText += 'a'
 if not commandsText:
     print('Error: no valid command supplied (among g,d,a)')
-    exit()
+    exit(-1)
 gameFilter = ''
 codeFilter = ''
 for arg in sys.argv[1:-1]:
     if arg.startswith('--game='):
         if gameFilter:
             print('Error: duplicate --game argument specified.')
-            exit()
+            exit(-1)
         gameFilter = arg[len('--game='):]
     elif arg.startswith('--code='):
         if codeFilter:
             print('Error: duplicate --code argument specified.')
-            exit()
+            exit(-1)
         codeFilter = arg[len('--game='):]
     else:
         print(f'Error: unrecognized argument: {arg}')
-        exit()
+        exit(-1)
 
 print(f'== encode.py {commandsText} ==')
 aliasList = read_aliases('src/aliases.yaml')
@@ -49,7 +49,7 @@ def read(context):
         for log in result.logs:
             print (log)
             if log.errlevel >= 3:
-                exit()
+                exit(-1)
             elif log.errlevel == 2:
                 return result
         return result
@@ -67,7 +67,7 @@ for result in results.tolist():
     if result.codetext().strip():
         print(f'Info: will encode: {result.context.name} for {game}')
         outputs[game] = outputs[game] + [result] if game in outputs else [result]
-    else:
+    elif result.errlevel != 2:
         print(f'Warning: ignoring empty code: {result.context.name}')
 
 if outputs:

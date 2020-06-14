@@ -59,36 +59,57 @@ The register specification (in the above, `A`) in the `gosub` and `return` comma
 
 Note on the above: The [official gecko docs](https://geckocodes.org/index.php?arsenal=1#66) say that the number of lines to jump is signed, thus supporting functions placed before the caller. However, some versions of dolphin treat the value as unsigned, meaning that they will try to jump forward into garbage data instead of backwards to sensible data. The framework will write the codes according to the docs and simply print out a warning if a function is placed before its caller, but it is worth being aware of this limitation.
 
-## Storing and loading data
+## If
 
-What follows is a table of common tasks, the alias to perform them, and the corresponding gecko code. Note that anywhere base address (`ba`) is used, pointer offset (`po`) can be used in the alias just as well. Also note, any line where the task has _byte_ italicized, the alias works just as well by replacing the italicized _byte_ with _halfword_ or _word_ and replacing the `b` on the righthand side of the assignment with `h` or `w` respectively.
+What follows is a table of common logic tasks, the alias to perform them, and the corresponding gecko code. Note that anywhere base address (`ba`) is used, pointer offset (`po`) can be used in the alias just as well.
 
 | Task | Alias | Compiled Gecko |
 | --- | --- | --- |
+| If the 16 bits at (base address + 0x1500), with the inverted mask 0xFF00, is equal to the value 0x0010: | `ifm [ba|1500] / FF00 == 1000` | `28001500 FF000010` |
+| If the 32 bits at (base address + 0x1500), is equal to the value 0x12AB34CD: | `if [ba|1500] == 12AB34CD` | `20001500 12AB34CD` |
+| EndIf, then If the 16 bits at (base address + 0x1500), with the inverted mask 0xFF00, is equal to the value 0x0010: | `'ifm [ba|1500] / FF00 == 1000` | `28001501 FF000010` |
+| EndIf, then If the 32 bits at (base address + 0x1500), is equal to the value 0x12AB34CD: | `'if [ba|1500] == 12AB34CD` | `20001501 12AB34CD` |
+| Apply 0x1A EndIfs. Leave ba and po alone. | `endif 1A` | `E200001A 00000000` |
+| End all Ifs. Reset ba and po. | `endif *` | `E0000000 80008000` |
+| If pointer offset is a valid pointer in MEM1. | `ifptr` | `DE000000 80008180` |
+| EndIf, then If pointer offset is a valid pointer in MEM1. | `'ifptr` | `DE000001 80008180` |
+
+## Storing and loading data
+
+What follows is a table of common data storage tasks, the alias to perform them, and the corresponding gecko code. Note that anywhere base address (`ba`) is used, pointer offset (`po`) can be used in the alias just as well. Also note, any line where the task has _byte_ italicized, the alias works just as well by replacing the italicized _byte_ with _halfword_ or _word_ and replacing the `b` on the righthand side of the assignment with `h` or `w` respectively.
+
+| Task | Alias | Compiled Gecko |
+| --- | --- | --- |
+| Set the base address to the literal value 0x8090A0B0 | `ba := 8090A0B0` | `42000000 8090A0B0` |
+| Set the base address to the word found at address 0x8090A0B0 | `ba := [8090A0B0]` | `40000000 8090A0B0` |
+| Set the pointer offset to the literal value 0x8090A0B0 | `po := 8090A0B0` | `4A000000 8090A0B0` |
+| Set the pointer offset to the word found at address 0x8090A0B0 | `po := [8090A0B0]` | `48000000 8090A0B0` |
 | Load the literal value 0x8090A0B0 into gecko register B | `grB := 8090A0B0` | `8000000B 8090A0B0` |
 | Load the _byte_ starting at the address 0x80001000 into gecko register C | `grC := b[80001000]` | `8200000C 80001000` |
+| Load the _byte_ starting at base address plus 0x1234 into gecko register C | `grC := b[ba+1234]` | `8201000C 00001234` |
+| Load the _byte_ starting at pointer offset plus 0x1234 into gecko register C | `grC := b[po+1234]` | `9201000C 00001234` |
 | Store _byte_ literal 0xEF to the address in ba | `[ba] := bEF` | `00000000 000000EF` |
 | Store _byte_ literal 0xEF to 0x1C consecutive _byte_-sized addresses starting at ba | `[ba] := bEF**1C` | `00000000 001B00EF` |
-| Store _byte_ literal 0xEF to the address 0x5A bytes after ba | `[ba+5A] := bEF` | `0000005A 000000EF` |
-| Store _byte_ literal 0xEF to 0x1C consecutive _byte_-sized addresses starting 0x5A bytes after ba | `[ba+5A] := bEF**1C` | `0000005A 001B00EF` |
+| Store _byte_ literal 0xEF to the address 0x5A bytes after ba | `[ba|5A] := bEF` | `0000005A 000000EF` |
+| Store _byte_ literal 0xEF to 0x1C consecutive _byte_-sized addresses starting 0x5A bytes after ba | `[ba|5A] := bEF**1C` | `0000005A 001B00EF` |
 | Copy 1 byte from the address in gecko register A to the address in ba | `[ba] := [grA]` | `8A0001AF 00000000` |
 | Copy 0x1F bytes from the address in gecko register A to the address in ba | `[ba] := [grA]**1F` | `8A001FAF 00000000` |
-| Copy 1 byte from the address in gecko register A to the address 0x5A bytes after ba | `[ba+5A] := [grA]` | `8A0001AF 0000005A` |
-| Copy 0x1F bytes from the address in gecko register A to the address 0x5A bytes after ba | `[ba+5A] := [grA]**1F` | `8A001FAF 0000005A` |
+| Copy 1 byte from the address in gecko register A to the address 0x5A bytes after ba | `[ba|5A] := [grA]` | `8A0001AF 0000005A` |
+| Copy 0x1F bytes from the address in gecko register A to the address 0x5A bytes after ba | `[ba|5A] := [grA]**1F` | `8A001FAF 0000005A` |
 | Copy 1 byte from the address in ba to the address in gecko register 7 | `[gr7] := [ba]` | `8C0001F7 00000000` |
 | Copy 0x1F bytes from the address in ba to the address in gecko register 7 | `[gr7] := [ba]**1F` | `8C001FF7 00000000` |
-| Copy 1 byte from the address 0x5A bytes after ba to the address in gecko register 7 | `[gr7] := [ba+5A]` | `8C0001F7 0000005A` |
-| Copy 0x1F bytes from the address 0x5A bytes after ba to the address in gecko register 7 | `[gr7] := [ba+5A]**1F` | `8C001FF7 0000005A` |
+| Copy 1 byte from the address 0x5A bytes after ba to the address in gecko register 7 | `[gr7] := [ba|5A]` | `8C0001F7 0000005A` |
+| Copy 0x1F bytes from the address 0x5A bytes after ba to the address in gecko register 7 | `[gr7] := [ba|5A]**1F` | `8C001FF7 0000005A` |
 | Copy 1 byte from the address in gecko register 6 to the address in gecko register 7 | `[gr7] := [gr6]` | `8C000167 00000000` |
 | Copy 0x1F bytes from the address in gecko register 6 to the address in gecko register 7 | `[gr7] := [gr6]**1F` | `8C001F67 00000000` |
-| Copy 1 byte from the address 0x5A bytes after the address in gecko register 6 to the address in gecko register 7 | `[gr7] := [gr6+5A]` | `8C000167 0000005A` |
-| Copy 0x1F bytes from the address 0x5A bytes after the address in gecko register 6 to the address in gecko register 7 | `[gr7] := [gr6+5A]**1F` | `8C001F67 0000005A` |
-| Copy 1 byte from the address in gecko register 6 to the address 0x5A bytes after the address in gecko register 7 | `[gr7+5A] := [gr6]` | `8A000167 0000005A` |
-| Copy 0x1F bytes from the address in gecko register 6 to the address 0x5A bytes after the address in gecko register 7 | `[gr7+5A] := [gr6]**1F` | `8A001F67 0000005A` |
+| Copy 1 byte from the address 0x5A bytes after the address in gecko register 6 to the address in gecko register 7 | `[gr7] := [gr6|5A]` | `8C000167 0000005A` |
+| Copy 0x1F bytes from the address 0x5A bytes after the address in gecko register 6 to the address in gecko register 7 | `[gr7] := [gr6|5A]**1F` | `8C001F67 0000005A` |
+| Copy 1 byte from the address in gecko register 6 to the address 0x5A bytes after the address in gecko register 7 | `[gr7|5A] := [gr6]` | `8A000167 0000005A` |
+| Copy 0x1F bytes from the address in gecko register 6 to the address 0x5A bytes after the address in gecko register 7 | `[gr7|5A] := [gr6]**1F` | `8A001F67 0000005A` |
 | Write the _byte_ in gecko register 8 to the address in ba | `[ba] := bgr8` | `84010008 00000000` |
 | Write the _byte_ in gecko register 8 to 0x1F consecutive _byte_-sized addresses starting at ba | `[ba] := bgr8**1F` | `840101E8 00000000` |
-| Write the _byte_ in gecko register 8 to the address 0x5A bytes after the address in ba | `[ba+5A] := bgr8` | `84010008 0000005A` |
-| Write the _byte_ in gecko register 8 to 0x1F consecutive _byte_-sized addresses starting 0x5A bytes after the address in ba | `[ba+5A] := bgr8**1F` | `840101E8 0000005A` |
+| Write the _byte_ in gecko register 8 to the address 0x5A bytes after the address in ba | `[ba|5A] := bgr8` | `84010008 0000005A` |
+| Write the _byte_ in gecko register 8 to 0x1F consecutive _byte_-sized addresses starting 0x5A bytes after the address in ba | `[ba|5A] := bgr8**1F` | `840101E8 0000005A` |
 
 ## Aliased Addresses
 

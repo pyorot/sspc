@@ -1,6 +1,6 @@
 push
   # setSpawn (manually write data to master spawn object)
-liw 3, MasterSpawn      # master spawn object
+liw 3, Spawn            # master spawn object
 liw 4, 0x46303030       # location - Skyloft map ID (F000)
 li 5, 0x0               # location ctd. (null terminator)
 li 6, 0x1c              # layer
