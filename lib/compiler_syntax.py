@@ -71,14 +71,23 @@ def flowIfPtr(match):
 validators.append([ re.compile(r"^(?P<endif>')?ifptr$", re.IGNORECASE), flowIfPtr])
 
 def flowAddress(match):
-    firstByte = 0x40 + (8 if match.group('bapo') == 'po' else 0)
+    lhs = match.group('bapo')
     value = match.group("value")
-    if value.startswith('[') and value.endswith(']'):
-        value = value[1:-1]
+    firstshort = 0x4800 if lhs == 'po' else 0x4000
+    if not value.startswith('['):
+        firstshort += 0x200
+        value = value.strip()
     else:
-        firstByte += 2
-    return f'{firstByte:02X}000000 {int(value,16):08X}'
-validators.append([ re.compile(r'^(?P<bapo>ba|po)\s*:=\s*(?P<value>(?:\[?[0-9a-f]{1,8}\]?)|(?:[0-9a-f]{1,8}))$', re.IGNORECASE), flowAddress])
+        value = value[1:-1].strip()
+    if value.startswith('ba'):
+        firstshort += 1
+        value = value[2:].strip()[1:].strip()
+    elif value.startswith('po'):
+        firstshort += 0x1001
+        value = value[2:].strip()[1:].strip()
+    value = value.strip()
+    return f'{firstshort:04X}0000 {int(value, 16):08X}'
+validators.append([ re.compile(r'^(?P<bapo>ba|po)\s*:=\s*(?P<value>(?:\[\s*(?:(?:ba|po)\s*\|\s*)?[0-9a-f]{1,8}\s*\])|(?:\s*(?:(?:ba|po)\s*\|\s*)?[0-9a-f]{1,8}))$', re.IGNORECASE), flowAddress])
 
 def flowAsm(match, token):
     try:
@@ -87,9 +96,9 @@ def flowAsm(match, token):
         with open(f'build-asm/{game}/{expandname}.gecko', 'r') as expandfile:
             for line in expandfile:
                 yield line.upper()
-        token.addinfo(f'Info: expanded file: {game}/{expandname}.asm')
+        token.addinfo(f'expanded file: {game}/{expandname}.asm')
     except FileNotFoundError:
-        token.addfatal(f'Error: expansion file not found: {expandname}.asm')
+        token.addfatal(f'expansion file not found: {expandname}.asm')
 validators.append([ re.compile(r'^{([0-9a-z\-]+).asm}$', re.IGNORECASE), flowAsm ])
 
 def flowAssignLiteralToGR(match):

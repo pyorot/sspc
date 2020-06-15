@@ -140,6 +140,16 @@ E0000000 80008000'''
         self.run_test('ba:=[<Spawn>]', '40000000 805B6B0C')
         self.run_test('po:=<Spawn>', '4A000000 805B6B0C')
         self.run_test('po:=[<Spawn>]', '48000000 805B6B0C')
+
+        self.run_test('ba:=ba|1500', '42010000 00001500')
+        self.run_test('ba:=po|1500', '52010000 00001500')
+        self.run_test('po:=ba|1500', '4A010000 00001500')
+        self.run_test('po:=po|1500', '5A010000 00001500')
+
+        self.run_test('ba:=[ba|1500]', '40010000 00001500')
+        self.run_test('ba:=[po|1500]', '50010000 00001500')
+        self.run_test('po:=[ba|1500]', '48010000 00001500')
+        self.run_test('po:=[po|1500]', '58010000 00001500')
     def test_write_mem(self):
         tests = [
             [ '[ba|1500]:=bCD', '00001500 000000CD' ],
