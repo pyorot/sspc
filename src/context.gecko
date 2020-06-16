@@ -1,32 +1,30 @@
+!assertgame RVL-SOUJ-0A-0 RVL-SOUE-0A-0 RVL-SOUE-0A-1
 # switch block for setting 80004205: flag for this code being enabled
-2859CF8C 00002008           # if Z+up
-    00004205 00000001       # flag 1 = 1
-    0295A75C 00000008       # Potion!
+ifm [ba|<InputBuffer>] / 0000 == 2008               # if Z+up
+    [ba|<SettingsFlags>+5] := b01                   # flag 1 = 1
+    [ba|0095A75C] := h 0008                         # Potion!
 CC000000 00000000
-2859CF8C 00002008
-    00004205 00000000       # flag 1 = 0
-    0295A75C 00000000       # Potion! (revert)
-    0295A760 00000008       # Potion!
-E0000000 80008000
+ifm [ba|<InputBuffer>] / 0000 == 2008
+    [ba|<SettingsFlags>+5] := b00                   # flag 1 = 0
+    [ba|0095A75C] := h00                            # Potion! (revert)
+    [ba|0095A760] := h08                            # Potion!
+endif *
 
 # run payload if on
-28004204 FF000001           # if flag 1
-    
+ifm [ba|<SettingsFlags> + 4] / FF00 == 0001         # if flag 1
     # Scaldera
-    205B6B0C 42323030           # if ET boss room (B200)
-        005B6B30 00000001       # set entrance to 1
-        48000000 805782F8	    # set PA to Scaldera (actor on heap?)
-        DE000000 80008180	    # assert pointer
-            9221000E 00000010   # copy boss health (via GR E)
-            8410000E 80955EC2   # to FA rupees
-        E2000001 80008000       # endif ×1
+    if [ba|<Spawn>] == 42323030                     # if ET boss room (B200)
+        [ba|<Spawn>+24] := b 01                     # set entrance to 1
+        po := [<ScalderaPtr>]                       # set PA to Scaldera (actor on heap?)
+        ifptr           	                        # assert pointer
+            grE := w [po|10]                        # copy boss health (via GR E)
+            [<FileA>+A5E] := h grE                  # to FA rupees
+        endif 1                                     # endif ×1
     
-    # Skyloft (Layer 3)         # for sidehop cs skip practice
-    205B6B0D 46303030           # if (4B) Skyloft (F000) (end-if)
-        285B6B2E FF000003       # if (2B w/ mask) layer 3
-            48000000 805789F4	    # set PA to reloader thingie
-            DE000000 80008180	    # assert pointer
-                100002A2 00000001	    # write 1B "true" to reloader.saveprompt (0x2a2)
-        E2000002 80008000       # endif ×2
-
-E0000000 80008000
+    # Skyloft (Layer 3)                             # for sidehop cs skip practice
+    'if [ba|<Spawn>] == 46303030                    # if (4B) Skyloft (F000) (end-if)
+        ifm [ba|<Spawn>+22] / FF00 == 0003          # if (2B w/ mask) layer 3
+            po := [<ReloaderPtr>]                   # set PA to reloader thingie
+            ifptr                                   # assert pointer
+                [po|2A2] := b 01	                # write 1B "true" to reloader.saveprompt (0x2a2)
+endif *

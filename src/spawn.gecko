@@ -1,46 +1,38 @@
+!assertgame RVL-SOUJ-0A-0 RVL-SOUP-0A-0 RVL-SOUP-0A-1 RVL-SOUE-0A-0 RVL-SOUE-0A-1
 # Addresses
-# 8059CF8C	[2B]	input buffer
-# 805789F4	[4B]	ptr to Reloader
-# 805789FD  [1B]    reload type (for Reloader)
-# 805B6B0C	[4B]	location (text)
-# 805B6B10	[4B]	location ctd. (text)
-# 805B6B2F	[1B]	layer
-# 805B6B30	[1B]	entrance
-# 805B6B32  [1B]    trial yay or nay?
-
 # flag 80004204:
     # 0: respawn with current spawn info (from most recent area load)
     # 1: respawn with restored spawn info (from previous save)
 
 ## Reload ##
-2859CF8C 40000001           # if left or C+left
-    {fileload.asm}          # runs cf.fileLoadSelected(), loadToCurrent()
-    84200000 805B6B0C	    # load 4B location from GR 0
-    84200001 805B6B10	    # load 4B location ctd. from GR 1
-    84000002 805B6B2F	    # load 1B layer from GR 2
-    84000003 805B6B30	    # load 1B entrance from GR 3
-    285B6B0C 17574020       # if location is valid (custom mask for regex /[BDFS][0-4e]../; see Stage folder)
-        48000000 805789F4	    # set PA to reloader (do this before next line to cut out an end-if code)
-        2859CF8C 00004001       # if C+left
-            005789FD 00000001       # set reload type to 1 = "from save" (gets zeroed after reload)
-        DE000001 80008180	    # assert pointer (end-if)
-            1200023C 00000005	    # trigger reload: write 2B literal 0x5 to *PA+23C
-E0000000 80008000
+ifm [ba|<InputBuffer>] / 4000 == 0001           # if left (0001) or C+left (4001)
+    {fileload.asm}                              # runs cf.fileLoadSelected(), loadToCurrent()
+    [<Spawn>   ] := w gr0                       # load 4B location from GR 0
+    [<Spawn>+4 ] := w gr1                       # load 4B location ctd. from GR 1
+    [<Spawn>+22] := w gr2                       # load 4B room/layer/entrance/night from GR 2
+    [<Spawn>+26] := b gr3                       # load 1B trial? from GR 3
+    ifm [ba|<Spawn>] / 1757 == 4020             # if location is valid (custom mask for regex /[BDFS][0-4e]../)
+        po := [<ReloaderPtr>]                   # set po (do this before next line to cut out an end-if code)
+        ifm [ba|<InputBuffer>] / 0000 == 4001   # if C+left
+            [ba|<ReloadType>] := b 1            # set reload type to 1 = "from save" (gets zeroed after reload)
+        'ifptr                                  # assert pointer (end-if)
+            [po|23c] := h 5                     # trigger reload: write 2B literal 0x5 to *PA+23C
+endif *
 
 ## BiT Reload ##
-2859CF8D 00000401           # if B+left (endif prev)
-    {reset.asm}             # runs setSpawn([defaults]), cf.reset(), cf.initFile(1)
-    48000000 805789F4	    # set PA to reloader
-    DE000000 80008180	    # assert pointer
-        1200023C 00000005	    # trigger reload: write 2B literal 0x5 to *PA+23C
-E0000000 80008000
+ifm [ba|<InputBuffer>+1] / 0000 == 0401         # if B+left
+    {reset.asm}                                 #   runs setSpawn([defaults]), cf.reset(), cf.initFile(1)
+    po := [<ReloaderPtr>]                       #   set PA to reloader
+    ifptr                                       #   assert pointer
+        [po|23c] := h 5                         #       trigger reload: write 2B literal 0x5 to *PA+23C
+endif *
 
 ## Store ##
-2859CF8D 00000002           # if right (endif prev)
-    {store.asm}             # stores Link's pos+angle to FA, then runs cf.fileSaveSelected()
-    82200000 805B6B0C		# store 4B location at GR 0
-    82200001 805B6B10		# store 4B location ctd. at GR 1
-    82000002 805B6B2F		# store 1B layer at GR 2
-    82000003 805B6B30		# store 1B entrance at GR 3
-    0295A758 00000008       # Potion!
-E0000000 80008000           # clears code execution
+'ifm [ba|<InputBuffer>] / 0000 == 0002          # if right
+    {store.asm}                                 #   stores Link's pos+angle to FA, then runs cf.fileSaveSelected()
+    gr0 := w [<Spawn>]  		                #   store 4B location at GR 0
+    gr1 := w [<Spawn>+4]    		            #   store 4B location ctd. at GR 1
+    gr2 := w [<Spawn>+22]                       #   store 4B meta at GR 2 (room/layer/entrance/night)
+    gr3 := b [<Spawn>+26]		                #   store 1B meta at GR 3 (trial)
+    [ba|0095A758] := h 0008                     #   Potion!
+endif *                                         #   clears code execution
