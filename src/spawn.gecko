@@ -17,8 +17,8 @@
     {fileload.asm}          # runs cf.fileLoadSelected(), loadToCurrent()
     84200000 805B6B0C	    # load 4B location from GR 0
     84200001 805B6B10	    # load 4B location ctd. from GR 1
-    84000002 805B6B2F	    # load 1B layer from GR 2
-    84000003 805B6B30	    # load 1B entrance from GR 3
+    84200002 805B6B2E	    # load 4B room/layer/entrance/night from GR 2
+    84000003 805B6B32	    # load 1B trial from GR 3
     285B6B0C 17574020       # if location is valid (custom mask for regex /[BDFS][0-4e]../; see Stage folder)
         48000000 805789F4	    # set PA to reloader (do this before next line to cut out an end-if code)
         2859CF8C 00004001       # if C+left
@@ -40,7 +40,7 @@ E0000000 80008000
     {store.asm}             # stores Link's pos+angle to FA, then runs cf.fileSaveSelected()
     82200000 805B6B0C		# store 4B location at GR 0
     82200001 805B6B10		# store 4B location ctd. at GR 1
-    82000002 805B6B2F		# store 1B layer at GR 2
-    82000003 805B6B30		# store 1B entrance at GR 3
+    82200002 805B6B2E		# store 4B room/layer/entrance/night at GR 2
+    82000003 805B6B32		# store 1B trial at GR 3
     0295A758 00000008       # Potion!
 E0000000 80008000           # clears code execution
