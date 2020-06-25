@@ -1,0 +1,33 @@
+games:
+  - J0
+addresses:
+  SettingsFlags: 80004204
+  InputBuffer:
+    J0: 8059CF8C
+    E0: 80599D0C
+    E1: 8059A20C
+    P1: 8059B48C
+    P0: 8059B28C
+  ReloaderPtr:
+    J0: 805789F4
+    P1: 80576ED4
+    P0: 80576D34
+    E0: 80575794
+    E1: 80575C74
+  ReloadType:
+    J0: 805789FD
+    P1: 80576EDD
+    P0: 80576D3D
+    E0: 8057579D
+    E1: 80575C7D
+  Spawn:
+    J0: 805B6B0C
+    P1: 805B4FE0
+    P0: 805B4DE0
+    E0: 805B388C
+    E1: 805B3D8C
+  ScalderaPtr:
+    J0: 805782F8
+    E0: 80575098
+    E1: 80575578
+  FileA: 80955464
