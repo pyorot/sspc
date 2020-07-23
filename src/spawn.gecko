@@ -1,3 +1,5 @@
+!assertgame J0 E0 E1 P0 P1
+
 # Addresses
 # flag 80004204:
     # 0: respawn with current spawn info (from most recent area load)

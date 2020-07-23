@@ -1,9 +1,9 @@
 push
 
 # position store
-liw 3, 0x805789EC       # static ptr to Link
+liw 3, <LinkPtr>        # static ptr to Link
 lwz 4, 0 (3)            # r4 has Link (or nullptr)
-liw 3, 0x8095545C       # r3 has cf (currentFiles), i.e. FA - 0x8
+liw 3, <CurrentFiles>   # r3 has cf (currentFiles), i.e. FA - 0x8
 cmpwi r4, 0             # if r4 is nullptr
 beq label_0             # skip copying
     lhz 6, 0xBA (4)         # Link 1θ
@@ -16,7 +16,7 @@ beq label_0             # skip copying
     stw 9, 0x20 (3)         # FA 1z
 
 # file save
-label_0:                # note that r3 is cf from before
-call 0x8000E180         # cf.fileSaveSelected() (copies FA → FS)
+label_0:                    # note that r3 is cf from before
+call <CFFileSaveSelected>   # cf.fileSaveSelected() (copies FA → FS)
 
 pop

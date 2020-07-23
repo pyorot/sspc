@@ -1,33 +1,81 @@
 games:
   - J0
+  - E0
+  - E1
+  - P0
+  - P1
+
+# more info on addresses here is at https://shoutplenty.uk/ss/re/<page>, as specified below
 addresses:
-  SettingsFlags: 80004204
-  InputBuffer:
-    J0: 8059CF8C
-    E0: 80599D0C
-    E1: 8059A20C
-    P1: 8059B48C
-    P0: 8059B28C
-  ReloaderPtr:
-    J0: 805789F4
-    P1: 80576ED4
-    P0: 80576D34
-    E0: 80575794
-    E1: 80575C74
-  ReloadType:
-    J0: 805789FD
-    P1: 80576EDD
-    P0: 80576D3D
-    E0: 8057579D
-    E1: 80575C7D
-  Spawn:
-    J0: 805B6B0C
-    P1: 805B4FE0
-    P0: 805B4DE0
-    E0: 805B388C
-    E1: 805B3D8C
+# Data
   ScalderaPtr:
-    J0: 805782F8
+    J0: 805782f8
     E0: 80575098
     E1: 80575578
+  LinkPtr:
+    J0: 805789ec
+    E0: 8057578c
+    E1: 80575c6c
+    P0: 80576d2c
+    P1: 80576ecc
+  ReloaderPtr:            # re/spawn
+    J0: 805789f4
+    E0: 80575794
+    E1: 80575c74
+    P0: 80576d34
+    P1: 80576ed4
+  ReloadType:             # re/spawn
+    J0: 805789fd
+    E0: 8057579d
+    E1: 80575c7d
+    P0: 80576d3d
+    P1: 80576edd
+  InputBuffer:
+    J0: 8059cf8c
+    E0: 80599d0c
+    E1: 8059a20c
+    P0: 8059b28c
+    P1: 8059b48c
+  Spawn:                  # re/spawn
+    J0: 805b6b0c
+    E0: 805b388c
+    E1: 805b3d8c
+    P0: 805b4de0
+    P1: 805b4fe0
+  CurrentFiles: 8095545c
   FileA: 80955464
+# Functions
+  CFFileInit:             # re/cf/fn
+    J0: 8000abc0
+    E0: 8000aaa0
+    E1: 8000abc0
+    P0: 8000abc0
+    P1: 8000abc0
+  CFFileLoadSelected:     # re/cf/fn
+    J0: 8000d390
+    E0: 8000d270
+    E1: 8000d390
+    P0: 8000d390
+    P1: 8000d390
+  CFFileSaveSelected:     # re/cf/fn
+    J0: 8000e180
+    E0: 8000e060
+    E1: 8000e180
+    P0: 8000e180
+    P1: 8000e180
+  CFReset:                # re/cf/fn
+    J0: 80010560
+    E0: 80010440
+    E1: 80010560
+    P0: 80010560
+    P1: 80010560
+  LoadToCurrent:          # re/commit
+    J0: 800c0740
+    E0: 800c0330
+    E1: 800c0340
+    P0: 800c04f0
+    P1: 800c0570
+# Empty; used for storing data
+  # 80000798–7FF is used for settings flags; define a new entry for each flag
+  # 80001500–50 is reserved for the coordinate display code
+  eContextToggle: 800007f0 # settings flag for if context code is enabled 

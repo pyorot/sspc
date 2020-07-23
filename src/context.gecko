@@ -1,16 +1,18 @@
+!assertgame J0 E0 E1
+
 # switch block for setting 80004205: flag for this code being enabled
 ifm [ba|<InputBuffer>] / 0000 == 2008               # if Z+up
-    [ba|<SettingsFlags>+1] := b 1                   # flag 1 = 1
+    [ba|<eContextToggle>] := b 1                    # flag 1 = 1
     [ba|<FileA>+52f8] := h 8                        # Potion!
 CC000000 00000000
 ifm [ba|<InputBuffer>] / 0000 == 2008
-    [ba|<SettingsFlags>+1] := b 0                   # flag 1 = 0
+    [ba|<eContextToggle>] := b 0                    # flag 1 = 0
     [ba|<FileA>+52f8] := h 0                        # Potion! (revert)
     [ba|<FileA>+52fC] := h 8                        # Potion!
 endif *
 
 # run payload if on
-ifm [ba|<SettingsFlags>+0] / FF00 == 0001           # if flag 1
+ifm [ba|<eContextToggle>] / 00FF == 0100            # if flag 1
     # Scaldera
     if [ba|<Spawn>] == 42323030                     # if ET boss room (B200)
         [ba|<Spawn>+24] := b 1                      # set entrance to 1
