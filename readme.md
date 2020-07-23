@@ -11,7 +11,7 @@ The codes themselves and all help material are published at <https://shoutplenty
 I hope this becomes a more collaborative project. I'll review pull requests and discuss works on the [Skyward Sword discord](https://discordapp.com/invite/fa5kpVa). I've done my best to document things in comments and in the docs folder, so jump in :P.
 
 ## Dependencies
-The project depends on [Bob's Gecko compiler](https://github.com/bob-zsr), which is currently a WIP. The modded version linked above will always work and be updated in tandem with this repo. The compiler repo should be extracted into a folder called `/compiler`. It depends on [pyiiasmh](https://code.google.com/archive/p/pyiiasmh/), an ASM encoder, required only to build ASM codes; it should be extracted into a folder called `/pyiiasmh`. This itself requires Python 2 to be installed.
+The project depends on [Bob's Gecko compiler](https://github.com/Pyorot/gecko-compiler), which is currently a WIP. The modded version linked above will always work and be updated in tandem with this repo. The compiler repo should be extracted into a folder called `/compiler`. It depends on [pyiiasmh](https://code.google.com/archive/p/pyiiasmh/), an ASM encoder, required only to build ASM codes; it should be extracted into a folder called `/pyiiasmh`. This itself requires Python 2 to be installed.
 
 ## Compiler
 To run the compiler, run the command `python compiler/main.py` from this repo's root folder. Add a word (after a space) to the command with the letters a,d,g (e.g. `adg`) to specify what to compile:

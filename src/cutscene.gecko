@@ -29,7 +29,7 @@ ifm [ba|<InputBuffer>] / 0000 == 0008       # if up:
 		123D7038 000001B1   # Gorko 365
 		123D74C8 0000FFFF   # Gorko 438
 		123D7908 0000FFFF   # Gorko 506
-		12346BD8 0000007C	# Meeting Machi 105
+		12346A58 0000007C	# Meeting Machi 81
 		12346618 00000086	# Meeting Machi 13
 		12347AE8 00000168   # Machi 346
 		123466D8 0000014F   # Machi 25
@@ -72,7 +72,7 @@ ifm [ba|<InputBuffer>] / 0000 == 0008       # if up
 		123D7038 0000003B   # Gorko 365
 		123D74C8 000001B7   # Gorko 438
 		123D7908 000001D2   # Gorko 506
-		12346BD8 0000012C	# Meeting Machi 105
+		12346A58 0000004D	# Meeting Machi 81
 		12346618 0000000E	# Meeting Machi 13
 		12347AE8 00000041   # Machi 346
 		123466D8 00000039   # Machi 25

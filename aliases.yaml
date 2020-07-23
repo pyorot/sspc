@@ -78,4 +78,5 @@ addresses:
 # Empty; used for storing data
   # 80000798–7FF is used for settings flags; define a new entry for each flag
   # 80001500–50 is reserved for the coordinate display code
-  eContextToggle: 800007f0 # settings flag for if context code is enabled 
+  eReloadTemp:    800007e0 # 4B | copy area ID here to validate it before triggering a reload
+  eContextToggle: 800007f0 # 1B | settings flag for if context code is enabled

@@ -7,23 +7,28 @@
 
 ## Reload ##
 ifm [ba|<InputBuffer>] / 4000 == 0001           # if left (0001) or C+left (4001)
-    {fileload.asm}                              # runs cf.fileLoadSelected(), loadToCurrent()
-    [<Spawn>   ] := w gr0                       # load 4B location from GR 0
-    [<Spawn>+4 ] := w gr1                       # load 4B location ctd. from GR 1
-    [<Spawn>+22] := w gr2                       # load 4B room/layer/entrance/night from GR 2
-    [<Spawn>+26] := b gr3                       # load 1B trial? from GR 3
-    ifm [ba|<Spawn>] / 1757 == 4020             # if location is valid (custom mask for regex /[BDFS][0-4e]../)
-        po := [<ReloaderPtr>]                   # set po (do this before next line to cut out an end-if code)
-        ifm [ba|<InputBuffer>] / 0000 == 4001   # if C+left
-            [ba|<ReloadType>] := b 1            # set reload type to 1 = "from save" (gets zeroed after reload)
-        'ifptr                                  # assert pointer (end-if)
-            [po|23c] := h 5                     # trigger reload: write 2B literal 0x5 to *PA+23C
+    [<eReloadTemp>] := w gr0                    # temp copy for next line since can't use gr in if statement
+    ifm [ba|<eReloadTemp>] / 1757 == 4020       # if location is valid (custom mask for regex /[BDFS][0-4e]../)
+        {fileload.asm}                              # runs cf.fileLoadSelected(), loadToCurrent()
+        [<Spawn>   ] := w gr0                       # load 4B location from GR 0
+        [<Spawn>+4 ] := w gr1                       # load 4B location ctd. from GR 1
+        [<Spawn>+22] := w gr2                       # load 4B room/layer/entrance/night from GR 2
+        [<Spawn>+26] := b gr3                       # load 1B trial? from GR 3    
+        po := [<ReloaderPtr>]                       # set po (do this before next line to cut out an end-if code)
+        ifm [ba|<InputBuffer>] / 0000 == 4001       # if C+left
+            [ba|<ReloadType>] := b 1                    # set reload to type-1 = from save (gets zeroed after reload)
+        'ifptr                                      # assert pointer (end-if)
+            [po|23c] := h 5                             # trigger reload: write 2B literal 0x5 to *PA+23C
 endif *
 
 ## BiT Reload ##
 ifm [ba|<InputBuffer>+1] / 0000 == 0401         # if B+left
-    {reset.asm}                                 #   runs setSpawn([defaults]), cf.reset(), cf.initFile(1)
-    po := [<ReloaderPtr>]                       #   set PA to reloader
+    {reset.asm}                                 #   runs cf.reset(), cf.initFile(1)
+    [ba|<Spawn>   ] := w 46303030               #   spawn: F000
+    [ba|<Spawn>+ 4] := b 0                      #          (null-terminator)
+    [ba|<Spawn>+22] := h 001C                   #          r0 l28
+    [ba|<Spawn>+24] := h 3F00                   #          e63
+    po := [<ReloaderPtr>]                       #   set PO to reloader
     ifptr                                       #   assert pointer
         [po|23c] := h 5                         #       trigger reload: write 2B literal 0x5 to *PA+23C
 endif *
