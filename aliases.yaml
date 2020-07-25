@@ -44,6 +44,7 @@ addresses:
     P1: 805b4fe0
   CurrentFiles: 8095545c
   FileA: 80955464
+  Arc0Common: 901f2100
 # Functions
   CFFileInit:             # re/cf/fn
     J0: 8000abc0
@@ -75,6 +76,29 @@ addresses:
     E1: 800c0340
     P0: 800c04f0
     P1: 800c0570
+
+# MSBF files (for cutscene skips)
+  msbf6_0:
+    J0: 9027c360
+  msbf102:
+    J0: 90297840
+  msbf107:
+    J0: 902ac0a0
+  msbf108:
+    J0: 902b1060
+  msbf114:
+    J0: 902d5ec0
+  msbf201:
+    J0: 90353980
+  msbf300:
+    J0: 90377520
+  msbf301:
+    J0: 90381d20
+  msbf501:
+    J0: 903e0080
+  msbf502:
+    J0: 903eac40 
+
 # Empty; used for storing data
   # 80000798–7FF is used for settings flags; define a new entry for each flag
   # 80001500–50 is reserved for the coordinate display code

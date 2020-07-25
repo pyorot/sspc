@@ -1,5 +1,6 @@
 changes since v1.1:
 1. spawn: store/load now includes room
-2. spawn: invalid locations no longer corrupt spawn data during blocked reloads
+2. spawn: "scratch test" – invalid locations no longer corrupt spawn data during blocked reloads
 3. spawn: rewrote BiT reload default values in Gecko (used to be asm)
-4. cutscene: fixed machi (reinstated textbox for rbm)
+4. cutscene: ported to new compiler (now requires triple sums)
+5. cutscene: 29 skips selected for itemless, some new, many removed (fixed machi and gorko)
