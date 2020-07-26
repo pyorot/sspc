@@ -1,0 +1,22 @@
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Get pyiiasmh
+      run: |
+        wget https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/pyiiasmh/pyiiasmh-2.0.0-linux-x86_64.tar.gz
+        tar -xzf pyiiasmh-2.0.0-linux-x86_64.tar.gz
+        mv pyiiasmh-2.0.0-linux-x86_64 pyiiasmh
+    - name: Get gecko compiler
+      run: |
+        git clone --depth 1 https://github.com/Pyorot/gecko-compiler.git compiler
+    - name: encode
+      run: python3 compiler/main.py gda
+    - uses: actions/upload-artifact@v2
+      with:
+        name: build
+        path: build/*
