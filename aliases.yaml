@@ -36,6 +36,9 @@ addresses:
     E1: 8059a20c
     P0: 8059b28c
     P1: 8059b48c
+  StaticStoryFlags:
+    J0: 805acd58
+    E0: 805a9ad8
   Spawn:                  # re/spawn
     J0: 805b6b0c
     E0: 805b388c

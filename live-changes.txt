@@ -1,6 +1,8 @@
 changes since v1.1:
 1. spawn: store/load now includes room
 2. spawn: "scratch test" – invalid locations no longer corrupt spawn data during blocked reloads
-3. spawn: rewrote BiT reload default values in Gecko (used to be asm)
-4. cutscene: ported to new compiler (now requires triple sums)
+3. under-the-hood: rewrote BiT reload default values in Gecko (used to be asm)
+4. under-the-hood: ported everything to new compiler
 5. cutscene: 29 skips selected for itemless, some new, many removed (fixed machi and gorko)
+6. context: while enabled, entering Temple in BiT sets flags to trigger harp tutorial
+7. cutscene: moved button combo from up to C+up to avoid interfering with harp

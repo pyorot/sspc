@@ -1,31 +1,39 @@
-!assertgame J0 E0 E1
+!assertgame J0 E0
 
-# switch block for setting 80004205: flag for this code being enabled
+# == switch ==                                      # toggle settings flag at <eContextToggle>
 ifm [ba|<InputBuffer>] / 0000 == 2008               # if Z+up
-    [ba|<eContextToggle>] := b 1                    # flag 1 = 1
+    [ba|<eContextToggle>] := b 1                    # settings flag = 1
     [ba|<FileA>+52f8] := h 8                        # Potion!
-CC000000 00000000
+CC000000 00000000                                   # switch
 ifm [ba|<InputBuffer>] / 0000 == 2008
-    [ba|<eContextToggle>] := b 0                    # flag 1 = 0
+    [ba|<eContextToggle>] := b 0                    # settings flag = 0
     [ba|<FileA>+52f8] := h 0                        # Potion! (revert)
     [ba|<FileA>+52fC] := h 8                        # Potion!
 endif *
 
-# run payload if on
+# == payload ==                                     # run code if switch is on
 ifm [ba|<eContextToggle>] / 00FF == 0100            # if flag 1
-    # Scaldera
+    po := [<ReloaderPtr>]                           # reloader is used in a few things
+    ifptr                                           # assert reloader exists
+
+        # 1) BiT: Harp Strum
+        ifm [po|8] / 0000 == 0000                       # *reloader+8 == 0 iff game is on title-screen
+            if [ba|<Spawn>] == 46343032                 # if (4B) area = Temple (F402)
+                [ba|<StaticStoryFlags>+  f] := b 85     # story flag byte including groose cs
+                [ba|<StaticStoryFlags>+110] := b 02     # item flag byte including harp
+        endif 2                                         # endif ×2
+
+        # 2) Sidehop CS Skip
+        if [ba|<Spawn>] == 46303030                 # if (4B) area = Skyloft (F000)
+            ifm [ba|<Spawn>+22] / FF00 == 0003      # if (2B w/ mask) layer = 3                                   
+                [po|2a2] := b 1 	                # set reloader.savePromptFlag (0x2a2)
+    endif 3
+    
+    # 3) Scaldera
     if [ba|<Spawn>] == 42323030                     # if ET boss room (B200)
         [ba|<Spawn>+24] := b 1                      # set entrance to 1
         po := [<ScalderaPtr>]                       # set PA to Scaldera (actor on heap?)
         ifptr           	                        # assert pointer
             grE := w [po|10]                        # copy boss health (via GR E)
             [<FileA>+a5e] := h grE                  # to FA rupees
-        endif 1                                     # endif ×1
-    
-    # Skyloft (Layer 3)                             # for sidehop cs skip practice
-    'if [ba|<Spawn>] == 46303030                    # if (4B) Skyloft (F000) (end-if)
-        ifm [ba|<Spawn>+22] / FF00 == 0003          # if (2B w/ mask) layer 3
-            po := [<ReloaderPtr>]                   # set PA to reloader thingie
-            ifptr                                   # assert pointer
-                [po|2a2] := b 1 	                # write 1B "true" to reloader.saveprompt (0x2a2)
 endif *
